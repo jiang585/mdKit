@@ -1,1 +1,24 @@
 opencode.json
+
+# 依赖
+node_modules/
+
+# 构建产物
+out/
+dist/
+release/
+*.tsbuildinfo
+
+# 测试与覆盖率
+coverage/
+playwright-report/
+test-results/
+
+# 日志
+logs/
+*.log
+npm-debug.log*
+
+# 系统文件
+.DS_Store
+Thumbs.db

@@ -1,0 +1,39 @@
+# 打包配置（架构决策输入 §11 / 需求 §4.4）
+appId: dev.jiuji.mdtoolbox
+productName: MD工具箱
+copyright: Copyright © 2026 jiuji
+
+directories:
+  output: release/${version}
+  buildResources: build
+
+files:
+  - out/**
+  - "!**/*.map"
+
+asar: true
+
+# 用户数据与安装数据分离（D5）：运行时写入 app.getPath('userData')，不写安装目录。
+# 离线可用（D3）：KaTeX 字体/样式、高亮与主题全部打进 out/renderer 资源。
+
+win:
+  # 不做代码签名；关闭 rcedit 以支持在非 Windows 平台交叉打包
+  signAndEditExecutable: false
+  target:
+    - target: nsis
+      arch: [x64]
+    - target: portable
+      arch: [x64]
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true   # D2：支持自定义安装路径
+  deleteAppDataOnUninstall: false
+  shortcutName: MD工具箱
+  artifactName: MD工具箱-Setup-${version}.${ext}
+
+portable:
+  artifactName: MD工具箱-Portable-${version}.${ext}
+
+npmRebuild: false
