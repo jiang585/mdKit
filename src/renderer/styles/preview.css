@@ -1,0 +1,262 @@
+/**
+ * 预览区排版（阶段5：排版间距/代码块/表格/引用块/公式样式）。
+ * 独立 HTML 导出复用本文件（?raw 内联），颜色全部来自 --mk-preview-* 变量。
+ */
+
+.mk-preview-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  background: var(--mk-preview-bg);
+  transition: background-color 200ms var(--mk-ease, ease);
+  scroll-behavior: auto; /* 滚动保持需要即时定位，禁用平滑以免视觉漂移 */
+}
+
+.mk-preview-content {
+  padding: 20px 34px 45vh;
+  color: var(--mk-preview-fg);
+  font-size: 15px;
+  line-height: 1.8;
+  word-wrap: break-word;
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+/* ---------- 标题 ---------- */
+.mk-preview-content h1,
+.mk-preview-content h2,
+.mk-preview-content h3,
+.mk-preview-content h4,
+.mk-preview-content h5,
+.mk-preview-content h6 {
+  color: var(--mk-preview-heading);
+  font-weight: 700;
+  line-height: 1.35;
+  margin: 1.6em 0 0.6em;
+  scroll-margin-top: 12px;
+}
+.mk-preview-content h1 {
+  font-size: 1.9em;
+  padding-bottom: 0.35em;
+  border-bottom: 1px solid var(--mk-preview-table-border);
+}
+.mk-preview-content h2 {
+  font-size: 1.5em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--mk-preview-table-border);
+}
+.mk-preview-content h3 { font-size: 1.25em; }
+.mk-preview-content h4 { font-size: 1.1em; }
+.mk-preview-content h5 { font-size: 1em; }
+.mk-preview-content h6 { font-size: 0.9em; opacity: 0.85; }
+.mk-preview-content > :first-child { margin-top: 0.4em; }
+
+.mk-preview-content p { margin: 0.7em 0; }
+
+/* ---------- 链接 ---------- */
+.mk-preview-content a {
+  color: var(--mk-preview-link);
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--mk-preview-link) 35%, transparent);
+  transition: border-color 120ms;
+}
+.mk-preview-content a:hover {
+  border-bottom-color: var(--mk-preview-link);
+}
+
+/* ---------- 列表 / 任务列表 ---------- */
+.mk-preview-content ul,
+.mk-preview-content ol {
+  padding-left: 1.8em;
+  margin: 0.6em 0;
+}
+.mk-preview-content li { margin: 0.25em 0; }
+.mk-preview-content li > ul,
+.mk-preview-content li > ol { margin: 0.15em 0; }
+.mk-preview-content li:has(> input[type='checkbox']) {
+  list-style: none;
+  margin-left: -1.5em;
+}
+.mk-preview-content input[type='checkbox'] {
+  accent-color: var(--mk-accent, var(--mk-preview-link));
+  margin-right: 0.5em;
+  vertical-align: -0.12em;
+  pointer-events: auto;
+  cursor: not-allowed; /* 预览态只读（F3.7） */
+}
+
+/* ---------- 引用块 ---------- */
+.mk-preview-content blockquote {
+  margin: 0.9em 0;
+  padding: 0.35em 1.1em;
+  border-left: 4px solid var(--mk-preview-quote-bar);
+  color: var(--mk-preview-quote-fg);
+  background: color-mix(in srgb, var(--mk-preview-quote-bar) 12%, transparent);
+  border-radius: 0 6px 6px 0;
+}
+.mk-preview-content blockquote > blockquote { margin: 0.4em 0; }
+
+/* ---------- 行内代码 / 代码块 ---------- */
+.mk-preview-content code {
+  font-family: var(--mk-font-mono, monospace);
+  font-size: 0.88em;
+  background: var(--mk-preview-code-bg);
+  color: var(--mk-preview-code-fg);
+  border-radius: 4px;
+  padding: 0.15em 0.4em;
+}
+.mk-preview-content pre {
+  background: var(--mk-preview-code-bg);
+  border: 1px solid color-mix(in srgb, var(--mk-preview-table-border) 65%, transparent);
+  border-radius: 8px;
+  padding: 14px 16px;
+  overflow-x: auto;
+  margin: 0.9em 0;
+  line-height: 1.6;
+}
+.mk-preview-content pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.86em;
+  color: var(--mk-preview-code-fg);
+  display: block;
+}
+
+/* highlight.js 语义类 → 主题变量（E3 可扩展语言注册不影响样式） */
+.mk-preview-content .hljs-keyword,
+.mk-preview-content .hljs-literal,
+.mk-preview-content .hljs-selector-tag { color: var(--mk-hl-keyword); }
+.mk-preview-content .hljs-string,
+.mk-preview-content .hljs-regexp,
+.mk-preview-content .hljs-addition { color: var(--mk-hl-string); }
+.mk-preview-content .hljs-comment,
+.mk-preview-content .hljs-quote,
+.mk-preview-content .hljs-deletion { color: var(--mk-hl-comment); font-style: italic; }
+.mk-preview-content .hljs-number,
+.mk-preview-content .hljs-symbol,
+.mk-preview-content .hljs-bullet,
+.mk-preview-content .hljs-meta { color: var(--mk-hl-number); }
+.mk-preview-content .hljs-title,
+.mk-preview-content .hljs-section,
+.mk-preview-content .hljs-name,
+.mk-preview-content .hljs-function { color: var(--mk-hl-title); }
+.mk-preview-content .hljs-attr,
+.mk-preview-content .hljs-attribute,
+.mk-preview-content .hljs-variable,
+.mk-preview-content .hljs-type,
+.mk-preview-content .hljs-built_in { color: var(--mk-hl-attr); }
+.mk-preview-content .hljs-emphasis { font-style: italic; }
+.mk-preview-content .hljs-strong { font-weight: 700; }
+
+/* ---------- 表格（F3.4） ---------- */
+.mk-preview-content table {
+  border-collapse: collapse;
+  margin: 0.9em 0;
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-spacing: 0;
+}
+.mk-preview-content th,
+.mk-preview-content td {
+  border: 1px solid var(--mk-preview-table-border);
+  padding: 7px 14px;
+}
+.mk-preview-content th {
+  background: var(--mk-preview-table-stripe);
+  font-weight: 600;
+}
+.mk-preview-content tbody tr:nth-child(2n) {
+  background: var(--mk-preview-table-stripe);
+}
+
+/* ---------- 分隔线 / 图片 ---------- */
+.mk-preview-content hr {
+  border: none;
+  border-top: 2px solid var(--mk-preview-table-border);
+  margin: 1.6em 0;
+  border-radius: 2px;
+}
+.mk-preview-content img {
+  max-width: 100%;
+  border-radius: 6px;
+  cursor: zoom-in;
+  box-shadow: var(--mk-shadow-1, 0 1px 3px rgb(0 0 0 / 0.08));
+}
+.mk-preview-content img[data-md-unresolved='true'] {
+  min-height: 28px;
+  background: var(--mk-preview-code-bg);
+}
+
+/* ---------- 公式（F3.6：字号/对齐/滚动，阶段5 公式渲染样式） ---------- */
+.mk-preview-content .katex {
+  font-size: 1.08em;
+}
+.mk-preview-content .katex-display {
+  margin: 0.9em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.2em 0;
+}
+.mk-preview-content .katex-error {
+  color: var(--mk-error-fg, #cf222e);
+  font-family: var(--mk-font-mono, monospace);
+  font-size: 0.85em;
+  background: color-mix(in srgb, var(--mk-error-fg, #cf222e) 8%, transparent);
+  border-radius: 4px;
+  padding: 0 4px;
+}
+
+/* ---------- 脚注（F3.8） ---------- */
+.mk-preview-content section[data-footnotes] {
+  margin-top: 2.2em;
+  padding-top: 0.8em;
+  border-top: 1px solid var(--mk-preview-table-border);
+  font-size: 0.88em;
+  color: var(--mk-preview-quote-fg);
+}
+.mk-preview-content [data-footnote-ref] {
+  font-size: 0.8em;
+  vertical-align: super;
+}
+
+/* ---------- Mermaid（F3.9） ---------- */
+.mk-preview-content .mk-mermaid {
+  margin: 0.9em 0;
+  text-align: center;
+  overflow-x: auto;
+}
+.mk-preview-content .mk-mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+.mk-preview-content .mk-mermaid-fallback {
+  text-align: left;
+}
+
+/* ---------- 渲染错误占位（错误隔离，开发规范 §6） ---------- */
+.mk-preview-content .mk-render-error,
+.mk-render-error {
+  color: var(--mk-error-fg, #cf222e);
+  background: color-mix(in srgb, var(--mk-error-fg, #cf222e) 8%, transparent);
+  border: 1px dashed color-mix(in srgb, var(--mk-error-fg, #cf222e) 45%, transparent);
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin: 0.6em 0;
+  font-size: 0.9em;
+}
+
+/* ---------- 光标同步 / 跳转闪烁 ---------- */
+.mk-preview-content .mk-cursor-sync {
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--mk-accent, #2563eb) 70%, transparent);
+  background: color-mix(in srgb, var(--mk-accent, #2563eb) 5%, transparent);
+  border-radius: 2px;
+  transition: background 200ms, box-shadow 200ms;
+}
+.mk-preview-content .mk-flash {
+  animation: mk-anchor-flash 900ms ease-out;
+}
+@keyframes mk-anchor-flash {
+  0% { background: color-mix(in srgb, var(--mk-accent, #2563eb) 22%, transparent); }
+  100% { background: transparent; }
+}

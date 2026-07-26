@@ -1,0 +1,598 @@
+/**
+ * 组件样式：欢迎页 / 弹窗 / Toast / 设置 / AI 面板 / Diff / 灯箱 / 崩溃页（阶段5）。
+ */
+
+/* ---------- 欢迎页（空状态引导） ---------- */
+.mk-welcome {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  padding: 24px;
+}
+.mk-welcome-card {
+  text-align: center;
+  max-width: 460px;
+  width: 100%;
+  animation: mk-pop-in 280ms var(--mk-ease);
+}
+.mk-welcome-logo {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 14px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, var(--mk-accent), color-mix(in srgb, var(--mk-accent) 55%, #7c3aed));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--mk-shadow-2);
+}
+.mk-welcome-logo-m {
+  font-size: 30px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -2px;
+}
+.mk-welcome-title {
+  font-size: 24px;
+  margin: 0 0 4px;
+}
+.mk-welcome-subtitle {
+  margin: 0 0 22px;
+  color: color-mix(in srgb, var(--mk-app-fg) 60%, transparent);
+}
+.mk-welcome-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+.mk-welcome-drop {
+  margin: 14px 0 0;
+  font-size: 12px;
+  color: color-mix(in srgb, var(--mk-app-fg) 45%, transparent);
+}
+.mk-welcome-recent {
+  margin-top: 26px;
+  text-align: left;
+  border: 1px solid var(--mk-border);
+  border-radius: var(--mk-radius);
+  overflow: hidden;
+  background: var(--mk-editor-bg);
+}
+.mk-welcome-recent-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--mk-border);
+}
+.mk-welcome-recent-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  appearance: none;
+  background: none;
+  border: none;
+  font: inherit;
+  color: inherit;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid color-mix(in srgb, var(--mk-border) 55%, transparent);
+  transition: background 100ms;
+}
+.mk-welcome-recent-item:last-child { border-bottom: none; }
+.mk-welcome-recent-item:hover {
+  background: color-mix(in srgb, var(--mk-accent) 7%, transparent);
+}
+.mk-welcome-recent-name { font-weight: 500; display: block; }
+.mk-welcome-recent-path {
+  font-size: 11px;
+  color: color-mix(in srgb, var(--mk-app-fg) 45%, transparent);
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  direction: rtl;
+  text-align: left;
+}
+
+/* ---------- 模态框 ---------- */
+.mk-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / 0.42);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: mk-fade-in 140ms var(--mk-ease);
+}
+.mk-modal {
+  background: var(--mk-app-bg);
+  color: var(--mk-app-fg);
+  border: 1px solid var(--mk-border);
+  border-radius: 12px;
+  box-shadow: var(--mk-shadow-2);
+  width: min(480px, calc(100vw - 48px));
+  max-height: min(680px, calc(100vh - 64px));
+  display: flex;
+  flex-direction: column;
+  animation: mk-pop-in 180ms var(--mk-ease);
+}
+.mk-modal-wide { width: min(760px, calc(100vw - 48px)); }
+.mk-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--mk-border);
+  flex: none;
+}
+.mk-modal-header h2 { margin: 0; font-size: 15px; }
+.mk-modal-body {
+  padding: 14px 16px;
+  overflow-y: auto;
+  min-height: 0;
+}
+.mk-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--mk-border);
+  flex: none;
+}
+
+/* ---------- Toast ---------- */
+.mk-toast-host {
+  position: fixed;
+  bottom: 36px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 200;
+  pointer-events: none;
+}
+.mk-toast {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--mk-app-bg);
+  color: var(--mk-app-fg);
+  border: 1px solid var(--mk-border);
+  border-radius: var(--mk-radius);
+  box-shadow: var(--mk-shadow-2);
+  padding: 9px 14px;
+  max-width: 380px;
+  cursor: pointer;
+  pointer-events: auto;
+  animation: mk-slide-up 200ms var(--mk-ease);
+}
+.mk-toast-icon { font-weight: 700; }
+.mk-toast-info .mk-toast-icon { color: var(--mk-accent); }
+.mk-toast-success .mk-toast-icon { color: var(--mk-success-fg); }
+.mk-toast-warning .mk-toast-icon { color: var(--mk-warning-fg); }
+.mk-toast-error .mk-toast-icon { color: var(--mk-error-fg); }
+.mk-toast-msg { font-size: 12.5px; }
+
+/* ---------- 设置 ---------- */
+.mk-settings {
+  display: flex;
+  gap: 0;
+  min-height: 380px;
+}
+.mk-settings-nav {
+  flex: none;
+  width: 120px;
+  border-right: 1px solid var(--mk-border);
+  padding-right: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.mk-settings-nav-item {
+  appearance: none;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  padding: 7px 10px;
+  border-radius: var(--mk-radius-sm);
+  cursor: pointer;
+}
+.mk-settings-nav-item:hover {
+  background: color-mix(in srgb, var(--mk-app-fg) 7%, transparent);
+}
+.mk-settings-nav-on {
+  background: color-mix(in srgb, var(--mk-accent) 14%, transparent) !important;
+  color: var(--mk-accent);
+  font-weight: 600;
+}
+.mk-settings-body {
+  flex: 1;
+  min-width: 0;
+  padding-left: 16px;
+  overflow-y: auto;
+}
+.mk-settings-section h3 {
+  margin: 14px 0 8px;
+  font-size: 13px;
+}
+.mk-settings-section h3:first-child { margin-top: 0; }
+.mk-settings-hint {
+  font-size: 12px;
+  color: color-mix(in srgb, var(--mk-app-fg) 60%, transparent);
+  margin: 4px 0 10px;
+  line-height: 1.6;
+}
+.mk-field-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+  flex-wrap: wrap;
+}
+.mk-field-row > .mk-input:not(.mk-input-num):not(.mk-input-key) { flex: 1; min-width: 160px; }
+
+.mk-shortcut-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+.mk-shortcut-table th,
+.mk-shortcut-table td {
+  text-align: left;
+  padding: 5px 8px;
+  border-bottom: 1px solid color-mix(in srgb, var(--mk-border) 60%, transparent);
+}
+
+.mk-ai-profile {
+  border: 1px solid var(--mk-border);
+  border-radius: var(--mk-radius);
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  background: var(--mk-editor-bg);
+}
+.mk-ai-profile-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+.mk-ai-name { width: 140px; font-weight: 600; }
+
+/* ---------- AI 对话面板 ---------- */
+.mk-chat {
+  width: 360px;
+  flex: none;
+  border-left: 1px solid var(--mk-border);
+  background: var(--mk-app-bg);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  animation: mk-fade-in 180ms var(--mk-ease);
+}
+.mk-chat-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--mk-border);
+  flex: none;
+}
+.mk-chat-title { font-weight: 700; }
+.mk-chat-header .mk-select { flex: 1; min-width: 0; font-size: 12px; padding: 4px 6px; }
+.mk-chat-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+.mk-chat-empty {
+  color: color-mix(in srgb, var(--mk-app-fg) 55%, transparent);
+  font-size: 12.5px;
+  line-height: 1.7;
+  padding: 18px 8px;
+}
+.mk-chat-empty-tip { opacity: 0.8; }
+.mk-chat-msg { animation: mk-slide-up 160ms var(--mk-ease); }
+.mk-chat-msg-role {
+  font-size: 11px;
+  font-weight: 700;
+  opacity: 0.6;
+  margin-bottom: 3px;
+}
+.mk-chat-msg-body {
+  background: var(--mk-editor-bg);
+  border: 1px solid var(--mk-border);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 13px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.mk-chat-msg-user .mk-chat-msg-body {
+  background: color-mix(in srgb, var(--mk-accent) 10%, var(--mk-editor-bg));
+  border-color: color-mix(in srgb, var(--mk-accent) 30%, var(--mk-border));
+}
+.mk-chat-caret {
+  display: inline-block;
+  width: 7px;
+  height: 14px;
+  background: var(--mk-accent);
+  vertical-align: -2px;
+  margin-left: 2px;
+  border-radius: 1px;
+  animation: mk-caret-blink 0.9s infinite;
+}
+.mk-chat-msg-error {
+  color: var(--mk-error-fg);
+  font-size: 12px;
+  margin-top: 6px;
+}
+.mk-chat-error {
+  flex: none;
+  margin: 0 12px 8px;
+  padding: 8px 12px;
+  border-radius: var(--mk-radius-sm);
+  background: color-mix(in srgb, var(--mk-error-fg) 10%, transparent);
+  color: var(--mk-error-fg);
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: space-between;
+}
+.mk-chat-composer {
+  flex: none;
+  border-top: 1px solid var(--mk-border);
+  padding: 8px 10px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mk-chat-modes {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mk-chat-ctx {
+  margin-left: auto;
+  font-size: 11.5px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: color-mix(in srgb, var(--mk-app-fg) 70%, transparent);
+}
+.mk-chat-inputrow {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+.mk-chat-input {
+  flex: 1;
+  resize: none;
+  font-family: inherit;
+  line-height: 1.5;
+  max-height: 120px;
+}
+
+/* ---------- Diff（F7.6） ---------- */
+.mk-diff {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.mk-diff-header {
+  flex: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--mk-border);
+  font-size: 12.5px;
+}
+.mk-diff-actions { display: flex; gap: 4px; }
+.mk-diff-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 12px;
+  min-height: 0;
+  font-family: var(--mk-font-mono);
+  font-size: 12px;
+}
+.mk-diff-context,
+.mk-diff-old,
+.mk-diff-new {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+  line-height: 1.55;
+}
+.mk-diff-context { opacity: 0.55; }
+.mk-diff-fold {
+  text-align: center;
+  opacity: 0.6;
+  font-size: 11px;
+  padding: 2px 0;
+}
+.mk-diff-chunk {
+  border: 1px solid var(--mk-border);
+  border-radius: var(--mk-radius-sm);
+  margin: 8px 0;
+  overflow: hidden;
+  opacity: 0.72;
+  transition: opacity 140ms, border-color 140ms;
+}
+.mk-diff-chunk-on {
+  opacity: 1;
+  border-color: color-mix(in srgb, var(--mk-accent) 55%, var(--mk-border));
+}
+.mk-diff-chunk-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  background: color-mix(in srgb, var(--mk-app-fg) 5%, transparent);
+  font-family: var(--mk-font-ui);
+  font-size: 11.5px;
+  cursor: pointer;
+  user-select: none;
+}
+.mk-diff-old { background: color-mix(in srgb, var(--mk-error-fg) 9%, transparent); }
+.mk-diff-new { background: color-mix(in srgb, var(--mk-success-fg) 10%, transparent); }
+.mk-diff-line { padding: 0 10px; }
+.mk-diff-sign {
+  display: inline-block;
+  width: 1.2em;
+  opacity: 0.7;
+  user-select: none;
+}
+.mk-diff-old .mk-diff-line { color: color-mix(in srgb, var(--mk-error-fg) 80%, var(--mk-app-fg)); }
+.mk-diff-new .mk-diff-line { color: color-mix(in srgb, var(--mk-success-fg) 80%, var(--mk-app-fg)); }
+.mk-diff-footer {
+  flex: none;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--mk-border);
+}
+.mk-diff-empty {
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+  font-size: 13px;
+}
+
+/* ---------- 请求预览（F7.9） ---------- */
+.mk-preview-request-msg { margin-bottom: 10px; }
+.mk-preview-request-role {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  opacity: 0.6;
+  margin-bottom: 3px;
+}
+.mk-preview-request-content {
+  margin: 0;
+  background: var(--mk-editor-bg);
+  border: 1px solid var(--mk-border);
+  border-radius: var(--mk-radius-sm);
+  padding: 8px 10px;
+  font-size: 11.5px;
+  max-height: 180px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.mk-preview-request-redact {
+  color: var(--mk-success-fg);
+  font-size: 12px;
+}
+
+/* ---------- 行内辅助 ---------- */
+.mk-inline-assist { display: flex; flex-direction: column; gap: 10px; }
+.mk-inline-label {
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.75;
+  margin-bottom: 4px;
+}
+.mk-inline-text {
+  margin: 0;
+  background: var(--mk-editor-bg);
+  border: 1px solid var(--mk-border);
+  border-radius: var(--mk-radius-sm);
+  padding: 8px 10px;
+  font-size: 12px;
+  max-height: 140px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.mk-inline-text-new {
+  border-color: color-mix(in srgb, var(--mk-success-fg) 45%, var(--mk-border));
+  background: color-mix(in srgb, var(--mk-success-fg) 6%, var(--mk-editor-bg));
+}
+.mk-inline-inputrow { display: flex; gap: 8px; }
+.mk-inline-inputrow .mk-input { flex: 1; }
+.mk-inline-streaming {
+  font-size: 12px;
+  opacity: 0.7;
+  animation: mk-caret-blink 1.2s infinite;
+}
+.mk-inline-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* ---------- 图片灯箱 ---------- */
+.mk-lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / 0.82);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  z-index: 300;
+  cursor: zoom-out;
+  animation: mk-fade-in 160ms var(--mk-ease);
+}
+.mk-lightbox-img {
+  max-width: 92vw;
+  max-height: 86vh;
+  border-radius: 8px;
+  box-shadow: var(--mk-shadow-2);
+  animation: mk-pop-in 200ms var(--mk-ease);
+}
+.mk-lightbox-hint { color: #ffffffb0; font-size: 12px; }
+
+/* ---------- 恢复列表 / 关于 / 崩溃页 ---------- */
+.mk-recovery-list {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  font-size: 12.5px;
+  color: color-mix(in srgb, var(--mk-app-fg) 75%, transparent);
+}
+.mk-about { text-align: center; padding: 8px 0 4px; }
+.mk-about-name { font-size: 18px; font-weight: 800; margin: 0 0 6px; }
+.mk-about-meta {
+  font-size: 11.5px;
+  color: color-mix(in srgb, var(--mk-app-fg) 50%, transparent);
+}
+.mk-crash {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px;
+  text-align: center;
+}
+.mk-crash-detail {
+  background: color-mix(in srgb, var(--mk-error-fg) 8%, transparent);
+  color: var(--mk-error-fg);
+  border-radius: var(--mk-radius-sm);
+  padding: 10px 14px;
+  max-width: 560px;
+  overflow: auto;
+  font-size: 12px;
+}

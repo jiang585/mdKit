@@ -26,6 +26,10 @@ export type RecentFile = z.infer<typeof recentFileSchema>;
 /* ---------- 请求载荷 ---------- */
 
 export const readFileReqSchema = z.object({ path: filePathSchema });
+/** 拖拽进窗口的文件：仅放行 Markdown 扩展名 */
+export const openDroppedReqSchema = z.object({
+  path: filePathSchema.regex(/\.(md|markdown)$/i, '仅支持 Markdown 文件'),
+});
 export const saveFileReqSchema = z.object({ path: filePathSchema, content: z.string() });
 export const saveAsReqSchema = z.object({ defaultName: z.string().max(255), content: z.string() });
 
@@ -95,6 +99,7 @@ export const aiErrorEventSchema = z.object({ requestId: z.string(), message: z.s
 /** invoke（请求/响应）通道 */
 export const IPC = {
   fileOpenDialog: 'file:open-dialog',
+  fileOpenDropped: 'file:open-dropped',
   fileRead: 'file:read',
   fileSave: 'file:save',
   fileSaveAs: 'file:save-as',

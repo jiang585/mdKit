@@ -15,6 +15,7 @@ import {
   exportHtmlReqSchema,
   exportPdfReqSchema,
   IPC,
+  openDroppedReqSchema,
   openExternalReqSchema,
   readFileReqSchema,
   rendererErrorReqSchema,
@@ -25,7 +26,14 @@ import {
 import { userConfigPatchSchema } from '@shared/config-schema';
 import { APP_NAME } from '@shared/constants';
 import { clearRecentFiles, getConfig, patchConfig } from './config-store';
-import { openViaDialog, readGrantedFile, saveAsDialog, saveToPath, grantPath } from './file-service';
+import {
+  openExternalPath,
+  openViaDialog,
+  readGrantedFile,
+  saveAsDialog,
+  saveToPath,
+  grantPath,
+} from './file-service';
 import { clearDraft, listDrafts, saveDraft } from './drafts';
 import { importThemeViaDialog, listCustomThemes } from './theme-files';
 import { exportHtml, exportPdf } from './export-service';
@@ -71,6 +79,13 @@ export function registerIpc(): void {
 
   handle(IPC.fileRead, readFileReqSchema, async (_event, { path }) => {
     const file = await readGrantedFile(path);
+    allowDocDir(dirname(file.path));
+    return file;
+  });
+
+  // 拖拽打开（F1.7）：视为用户授权来源，仅放行 .md/.markdown
+  handle(IPC.fileOpenDropped, openDroppedReqSchema, async (_event, { path }) => {
+    const file = await openExternalPath(path);
     allowDocDir(dirname(file.path));
     return file;
   });

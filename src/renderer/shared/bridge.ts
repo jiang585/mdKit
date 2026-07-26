@@ -12,6 +12,8 @@ type Unsubscribe = () => void;
 export interface Bridge {
   file: {
     openDialog(): Promise<OpenedFile | null>;
+    pathForFile(file: File): string;
+    openDropped(path: string): Promise<OpenedFile>;
     read(path: string): Promise<OpenedFile>;
     save(path: string, content: string): Promise<{ ok: boolean }>;
     saveAs(defaultName: string, content: string): Promise<{ path: string; name: string } | null>;
@@ -72,6 +74,11 @@ function createBrowserMock(): Bridge {
   return {
     file: {
       openDialog: async () => null,
+      pathForFile: (file) => `/mock/${file.name}`,
+      openDropped: async (path) => {
+        const content = files.get(path) ?? '';
+        return { path, name: path.split(/[\\/]/).pop() ?? path, content };
+      },
       read: async (path) => {
         const content = files.get(path);
         if (content === undefined) throw new Error('文件不存在');

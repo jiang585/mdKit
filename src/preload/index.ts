@@ -2,7 +2,7 @@
  * Preload：以 contextBridge 暴露有限、类型化的 IPC 方法（决策输入 §4）。
  * 不暴露 ipcRenderer 本体、不暴露 fs/路径/任意通道调用能力。
  */
-import { contextBridge, ipcRenderer } from 'electron';
+import { contextBridge, ipcRenderer, webUtils } from 'electron';
 import { IPC, IPC_PUSH } from '@shared/ipc-contract';
 
 type Unsubscribe = () => void;
@@ -19,6 +19,9 @@ function on(channel: string): (cb: (payload: unknown) => void) => Unsubscribe {
 const api = {
   file: {
     openDialog: () => ipcRenderer.invoke(IPC.fileOpenDialog),
+    /** 拖拽文件 → 绝对路径（sandbox 下 File.path 不可用，经 webUtils 取得） */
+    pathForFile: (file: File) => webUtils.getPathForFile(file),
+    openDropped: (path: string) => ipcRenderer.invoke(IPC.fileOpenDropped, { path }),
     read: (path: string) => ipcRenderer.invoke(IPC.fileRead, { path }),
     save: (path: string, content: string) => ipcRenderer.invoke(IPC.fileSave, { path, content }),
     saveAs: (defaultName: string, content: string) =>
