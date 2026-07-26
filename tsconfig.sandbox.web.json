@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.web.json",
+  "compilerOptions": {
+    "composite": false,
+    "types": [],
+    "typeRoots": []
+  },
+  "include": [
+    "src/renderer/**/*",
+    "src/shared/**/*",
+    "tests/unit/**/*",
+    "tests/component/**/*",
+    "tests/integration/**/*",
+    "tests/perf/**/*",
+    "types/vendor/**/*.d.ts"
+  ]
+}

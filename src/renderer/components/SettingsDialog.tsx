@@ -263,7 +263,7 @@ function ThemeSection({
 }
 
 function ShortcutsSection({ config, patch }: { config: UserConfig; patch: PatchFn }) {
-  const all = { ...MENU_KEY_DEFAULTS, ...DEFAULT_EDITOR_KEYS, 'ai.inlineAssist': 'Mod-k' };
+  const all: Record<string, string> = { ...MENU_KEY_DEFAULTS, ...DEFAULT_EDITOR_KEYS, 'ai.inlineAssist': 'Mod-k' };
   const [draft, setDraft] = useState<Record<string, string>>({});
 
   const commit = (command: string, value: string): void => {

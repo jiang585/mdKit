@@ -2,7 +2,7 @@
  * 预览视图：接收渲染结果（纯数据），提交 DOM 并保持滚动阅读位置。
  * 交互：链接外开/锚点内跳、图片点击放大、任务列表只读、Mermaid 惰性渲染、光标同步高亮。
  */
-import { memo, useCallback, useEffect, useMemo, useRef } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, type MouseEvent as ReactMouseEvent } from 'react';
 import type { RenderResult } from '@renderer/shared/render-types';
 import { captureAnchor, readBlockRects, restoreScrollTop } from './scroll-keeper';
 import { renderMermaidBlocks } from './mermaid-lazy';
@@ -105,7 +105,7 @@ export const PreviewPanel = memo(function PreviewPanel(props: PreviewPanelProps)
 
   /* ---------- 事件代理 ---------- */
   const handleClick = useCallback(
-    (event: React.MouseEvent<HTMLDivElement>) => {
+    (event: ReactMouseEvent<HTMLDivElement>) => {
       const target = event.target as HTMLElement;
 
       const link = target.closest('a[href]');
