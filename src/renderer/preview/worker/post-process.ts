@@ -41,9 +41,11 @@ export function joinDocPath(baseDir: string, relative: string): string {
   const baseParts = baseDir.split(/[\\/]/).filter((p) => p.length > 0);
   const relParts = relative.replace(/^\.\//, '').split('/');
   const stack = [...baseParts];
+  // Windows 盘符不可被 .. 弹出；POSIX 可上溯至根
+  const minDepth = /^[A-Za-z]:$/.test(baseParts[0] ?? '') ? 1 : 0;
   for (const part of relParts) {
     if (part === '..') {
-      if (stack.length > 1) stack.pop();
+      if (stack.length > minDepth) stack.pop();
     } else if (part !== '.' && part !== '') {
       stack.push(part);
     }
