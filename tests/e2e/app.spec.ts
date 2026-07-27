@@ -93,6 +93,32 @@ test('编辑中部后预览滚动位置保持（验收 3）', async () => {
   expect(Math.abs(after - before)).toBeLessThan(80);
 });
 
+test('滚动编辑区时预览区跟随源码位置（F3.2）', async () => {
+  const before = await page.evaluate(
+    () => (document.querySelector('[data-testid="preview-scroll"]') as HTMLElement).scrollTop,
+  );
+  await page.evaluate(() => {
+    const editor = document.querySelector('.cm-scroller') as HTMLElement;
+    editor.dispatchEvent(new WheelEvent('wheel', { deltaY: 800, bubbles: true }));
+    editor.scrollTop = (editor.scrollHeight - editor.clientHeight) * 0.75;
+    editor.dispatchEvent(new Event('scroll'));
+  });
+  await page.waitForFunction(
+    (previous: number) =>
+      (document.querySelector('[data-testid="preview-scroll"]') as HTMLElement).scrollTop > previous + 200,
+    before,
+  );
+  const ratios = await page.evaluate(() => {
+    const editor = document.querySelector('.cm-scroller') as HTMLElement;
+    const preview = document.querySelector('[data-testid="preview-scroll"]') as HTMLElement;
+    return {
+      editor: editor.scrollTop / Math.max(1, editor.scrollHeight - editor.clientHeight),
+      preview: preview.scrollTop / Math.max(1, preview.scrollHeight - preview.clientHeight),
+    };
+  });
+  expect(Math.abs(ratios.editor - ratios.preview)).toBeLessThan(0.25);
+});
+
 test('保存到磁盘（对话框经临时文件旁路验证主链路）', async () => {
   const dir = mkdtempSync(join(tmpdir(), 'mdkit-e2e-'));
   const file = join(dir, 'saved.md');

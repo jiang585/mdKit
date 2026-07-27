@@ -36,6 +36,7 @@ export interface EditorCreateOptions {
   shortcuts?: Record<string, string>;
   onContentChanged?: (event: EditorChangeEvent) => void;
   onCursorMoved?: (cursor: CursorInfo) => void;
+  onScrollAnchorChanged?: (line: number) => void;
 }
 
 export interface EditorHandle {
@@ -61,6 +62,8 @@ export interface EditorHandle {
 export function createEditor(options: EditorCreateOptions): EditorHandle {
   let revision = 0;
   let pendingSource: EditSource = 'user-input';
+  let scrollRaf = 0;
+  let userScrollIntentUntil = 0;
 
   const cursorOf = (state: EditorState): CursorInfo => {
     const head = state.selection.main.head;
@@ -90,6 +93,22 @@ export function createEditor(options: EditorCreateOptions): EditorHandle {
     });
 
   const view = new EditorView({ state: makeState(options.initialText ?? ''), parent: options.parent });
+  const markUserScrollIntent = (): void => {
+    userScrollIntentUntil = performance.now() + 1000;
+  };
+  const handleScroll = (): void => {
+    if (performance.now() > userScrollIntentUntil) return;
+    if (scrollRaf) return;
+    scrollRaf = requestAnimationFrame(() => {
+      scrollRaf = 0;
+      const block = view.lineBlockAtHeight(Math.max(0, -view.documentTop));
+      options.onScrollAnchorChanged?.(view.state.doc.lineAt(block.from).number);
+    });
+  };
+  view.scrollDOM.addEventListener('wheel', markUserScrollIntent, { passive: true });
+  view.scrollDOM.addEventListener('touchstart', markUserScrollIntent, { passive: true });
+  view.scrollDOM.addEventListener('pointerdown', markUserScrollIntent, { passive: true });
+  view.scrollDOM.addEventListener('scroll', handleScroll, { passive: true });
 
   const notifyExternalReplace = (source: EditSource): void => {
     revision += 1;
@@ -147,6 +166,13 @@ export function createEditor(options: EditorCreateOptions): EditorHandle {
       notifyExternalReplace('file-load');
     },
     focus: () => view.focus(),
-    destroy: () => view.destroy(),
+    destroy() {
+      view.scrollDOM.removeEventListener('wheel', markUserScrollIntent);
+      view.scrollDOM.removeEventListener('touchstart', markUserScrollIntent);
+      view.scrollDOM.removeEventListener('pointerdown', markUserScrollIntent);
+      view.scrollDOM.removeEventListener('scroll', handleScroll);
+      cancelAnimationFrame(scrollRaf);
+      view.destroy();
+    },
   };
 }

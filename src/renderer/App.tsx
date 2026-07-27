@@ -61,9 +61,11 @@ export function App() {
   const activeTabRef = useRef<{ id: string; path: string | null; name: string } | null>(null);
   const prevTabIdRef = useRef<string | null>(null);
   const configRef = useRef<UserConfig | null>(null);
+  const layoutModeRef = useRef(layoutMode);
   const tabInitialContent = useRef(new Map<string, string>());
   const autosaveRef = useRef(createAutosave(() => editorRef.current?.getText() ?? null));
   configRef.current = config;
+  layoutModeRef.current = layoutMode;
 
   const activeTab = tabs.find((t) => t.id === activeTabId) ?? null;
   activeTabRef.current = activeTab ? { id: activeTab.id, path: activeTab.path, name: activeTab.name } : null;
@@ -134,6 +136,11 @@ export function App() {
         useUiStore.getState().setCursor(cursor.line, cursor.column);
         appBus.emit('editor:cursor-moved', { line: cursor.line, column: cursor.column, offset: cursor.offset });
         setCursorLine((prev) => (prev === cursor.line ? prev : cursor.line));
+      },
+      onScrollAnchorChanged: (line: number) => {
+        if (layoutModeRef.current === 'split') {
+          previewRef.current?.scrollToLine(line, { behavior: 'auto', flash: false });
+        }
       },
     }),
     // 编辑器只创建一次；选项经 setOptions 动态调整

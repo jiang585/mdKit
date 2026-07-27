@@ -10,7 +10,7 @@ import { findAnchorLineForCursor } from './cursor-sync';
 
 export interface PreviewControls {
   /** 滚动到源码行对应的块（TOC 导航用） */
-  scrollToLine(line: number): void;
+  scrollToLine(line: number, options?: { behavior?: ScrollBehavior; flash?: boolean }): void;
 }
 
 export interface PreviewPanelProps {
@@ -77,7 +77,7 @@ export const PreviewPanel = memo(function PreviewPanel(props: PreviewPanelProps)
   /* ---------- 控制句柄（TOC 导航） ---------- */
   const controls = useMemo<PreviewControls>(
     () => ({
-      scrollToLine(line: number) {
+      scrollToLine(line: number, options = {}) {
         const content = contentRef.current;
         if (!content) return;
         let best: HTMLElement | null = null;
@@ -91,9 +91,11 @@ export const PreviewPanel = memo(function PreviewPanel(props: PreviewPanelProps)
           }
         });
         if (best !== null) {
-          (best as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'start' });
-          (best as HTMLElement).classList.add('mk-flash');
-          setTimeout(() => (best as HTMLElement).classList.remove('mk-flash'), 900);
+          (best as HTMLElement).scrollIntoView({ behavior: options.behavior ?? 'smooth', block: 'start' });
+          if (options.flash ?? true) {
+            (best as HTMLElement).classList.add('mk-flash');
+            setTimeout(() => (best as HTMLElement).classList.remove('mk-flash'), 900);
+          }
         }
       },
     }),

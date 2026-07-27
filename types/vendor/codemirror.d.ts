@@ -65,6 +65,9 @@ declare module '@codemirror/view' {
   export class EditorView {
     constructor(config?: { state?: EditorState; parent?: Element });
     state: EditorState;
+    readonly scrollDOM: HTMLElement;
+    readonly documentTop: number;
+    lineBlockAtHeight(height: number): { from: number };
     dispatch(spec: TransactionSpec): void;
     setState(state: EditorState): void;
     focus(): void;
