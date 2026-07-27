@@ -99,15 +99,19 @@ test('滚动编辑区时预览区跟随源码位置（F3.2）', async () => {
   );
   await page.evaluate(() => {
     const editor = document.querySelector('.cm-scroller') as HTMLElement;
-    editor.dispatchEvent(new WheelEvent('wheel', { deltaY: 800, bubbles: true }));
+    editor.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, pointerId: 1 }));
+  });
+  // 超过旧实现的 1 秒意图窗口，按住滚动条时仍必须持续同步。
+  await page.waitForTimeout(1100);
+  await page.evaluate(() => {
+    const editor = document.querySelector('.cm-scroller') as HTMLElement;
     editor.scrollTop = (editor.scrollHeight - editor.clientHeight) * 0.75;
     editor.dispatchEvent(new Event('scroll'));
+    window.dispatchEvent(new PointerEvent('pointerup', { pointerId: 1 }));
   });
-  await page.waitForFunction(
-    (previous: number) =>
-      (document.querySelector('[data-testid="preview-scroll"]') as HTMLElement).scrollTop > previous + 200,
-    before,
-  );
+  await expect
+    .poll(() => page.locator('[data-testid="preview-scroll"]').evaluate((element) => element.scrollTop))
+    .toBeGreaterThan(before + 200);
   const ratios = await page.evaluate(() => {
     const editor = document.querySelector('.cm-scroller') as HTMLElement;
     const preview = document.querySelector('[data-testid="preview-scroll"]') as HTMLElement;

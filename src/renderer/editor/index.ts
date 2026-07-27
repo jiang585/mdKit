@@ -63,7 +63,9 @@ export function createEditor(options: EditorCreateOptions): EditorHandle {
   let revision = 0;
   let pendingSource: EditSource = 'user-input';
   let scrollRaf = 0;
-  let userScrollIntentUntil = 0;
+  let wheelIntentUntil = 0;
+  let pointerScrollActive = false;
+  let touchScrollActive = false;
 
   const cursorOf = (state: EditorState): CursorInfo => {
     const head = state.selection.main.head;
@@ -93,11 +95,23 @@ export function createEditor(options: EditorCreateOptions): EditorHandle {
     });
 
   const view = new EditorView({ state: makeState(options.initialText ?? ''), parent: options.parent });
-  const markUserScrollIntent = (): void => {
-    userScrollIntentUntil = performance.now() + 1000;
+  const markWheelIntent = (): void => {
+    wheelIntentUntil = performance.now() + 250;
+  };
+  const beginPointerScroll = (): void => {
+    pointerScrollActive = true;
+  };
+  const endPointerScroll = (): void => {
+    pointerScrollActive = false;
+  };
+  const beginTouchScroll = (): void => {
+    touchScrollActive = true;
+  };
+  const endTouchScroll = (): void => {
+    touchScrollActive = false;
   };
   const handleScroll = (): void => {
-    if (performance.now() > userScrollIntentUntil) return;
+    if (!pointerScrollActive && !touchScrollActive && performance.now() > wheelIntentUntil) return;
     if (scrollRaf) return;
     scrollRaf = requestAnimationFrame(() => {
       scrollRaf = 0;
@@ -105,10 +119,14 @@ export function createEditor(options: EditorCreateOptions): EditorHandle {
       options.onScrollAnchorChanged?.(view.state.doc.lineAt(block.from).number);
     });
   };
-  view.scrollDOM.addEventListener('wheel', markUserScrollIntent, { passive: true });
-  view.scrollDOM.addEventListener('touchstart', markUserScrollIntent, { passive: true });
-  view.scrollDOM.addEventListener('pointerdown', markUserScrollIntent, { passive: true });
+  view.scrollDOM.addEventListener('wheel', markWheelIntent, { passive: true });
+  view.scrollDOM.addEventListener('touchstart', beginTouchScroll, { passive: true });
+  view.scrollDOM.addEventListener('pointerdown', beginPointerScroll, { passive: true });
   view.scrollDOM.addEventListener('scroll', handleScroll, { passive: true });
+  window.addEventListener('pointerup', endPointerScroll);
+  window.addEventListener('pointercancel', endPointerScroll);
+  window.addEventListener('touchend', endTouchScroll);
+  window.addEventListener('touchcancel', endTouchScroll);
 
   const notifyExternalReplace = (source: EditSource): void => {
     revision += 1;
@@ -167,10 +185,14 @@ export function createEditor(options: EditorCreateOptions): EditorHandle {
     },
     focus: () => view.focus(),
     destroy() {
-      view.scrollDOM.removeEventListener('wheel', markUserScrollIntent);
-      view.scrollDOM.removeEventListener('touchstart', markUserScrollIntent);
-      view.scrollDOM.removeEventListener('pointerdown', markUserScrollIntent);
+      view.scrollDOM.removeEventListener('wheel', markWheelIntent);
+      view.scrollDOM.removeEventListener('touchstart', beginTouchScroll);
+      view.scrollDOM.removeEventListener('pointerdown', beginPointerScroll);
       view.scrollDOM.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('pointerup', endPointerScroll);
+      window.removeEventListener('pointercancel', endPointerScroll);
+      window.removeEventListener('touchend', endTouchScroll);
+      window.removeEventListener('touchcancel', endTouchScroll);
       cancelAnimationFrame(scrollRaf);
       view.destroy();
     },
