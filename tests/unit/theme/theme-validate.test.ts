@@ -5,7 +5,7 @@ import lightSepia from '@renderer/theme/builtin/light-sepia.json';
 import darkDefault from '@renderer/theme/builtin/dark-default.json';
 import darkOcean from '@renderer/theme/builtin/dark-ocean.json';
 
-describe('主题 JSON Schema 校验（Ajv，决策 §10 / E4）', () => {
+describe('主题 JSON Schema 校验（决策 §10 / E4）', () => {
   it('四套内置主题全部合法（浅色≥2、深色≥2，F4.7）', () => {
     const themes = [lightDefault, lightSepia, darkDefault, darkOcean];
     for (const theme of themes) {

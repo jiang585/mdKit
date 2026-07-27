@@ -2,7 +2,7 @@
  * 原生菜单栏：文件 / 编辑 / 视图 / 主题 / 帮助（界面需求 §5.1）。
  * 菜单命令统一路由到渲染进程（menu:command），快捷键支持用户自定义覆盖（E7）。
  */
-import { app, BrowserWindow, Menu, type MenuItemConstructorOptions } from 'electron';
+import { app, Menu, type BrowserWindow, type MenuItemConstructorOptions } from 'electron';
 import { IPC_PUSH, type MenuCommand } from '@shared/ipc-contract';
 import { getConfig } from './config-store';
 
@@ -19,7 +19,7 @@ const DEFAULT_ACCELERATORS: Partial<Record<MenuCommand, string>> = {
   'view.toggleToc': 'CmdOrCtrl+Alt+T',
   'view.toggleAiPanel': 'CmdOrCtrl+Alt+A',
   'view.openSettings': 'CmdOrCtrl+,',
-  'theme.next': 'CmdOrCtrl+K CmdOrCtrl+T',
+  'theme.next': 'CmdOrCtrl+Shift+T',
 };
 
 function acc(command: MenuCommand): string | undefined {

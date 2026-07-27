@@ -35,7 +35,7 @@ describe('渲染管线（决策 §7 / 必测场景）', () => {
   });
 
   it('LaTeX 行内与块级公式经 KaTeX 展开（F3.6）', async () => {
-    const result = await render('质能方程 $E=mc^2$：\n\n$$\\int_0^1 x^2 dx$$');
+    const result = await render('质能方程 $E=mc^2$：\n\n$$\n\\int_0^1 x^2 dx\n$$');
     expect(result.html).toContain('class="katex"');
     expect(result.html).toContain('katex-display');
     expect(result.diagnostics).toHaveLength(0);

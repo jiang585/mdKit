@@ -1,8 +1,8 @@
 /**
  * 自定义主题文件管理（F4.6）：导入 JSON 主题到 userData/themes/。
- * 具体 JSON Schema 校验由渲染进程主题引擎（Ajv）完成；此处仅做基本形状与大小防护。
+ * 具体 JSON Schema 校验由渲染进程主题引擎完成；此处仅做基本形状与大小防护。
  */
-import { app, BrowserWindow, dialog } from 'electron';
+import { app, dialog, type BrowserWindow } from 'electron';
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { log } from './logger';

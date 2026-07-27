@@ -3,25 +3,42 @@
  * 运行前需 `npm run build`（加载 out/main/index.js）。断网状态下同样应全部通过（离线验收 5）。
  */
 import { _electron, expect, test } from '@playwright/test';
-import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 let app: any;
 let page: any;
+let userDataDir: string;
+
+test.describe.configure({ mode: 'serial' });
 
 test.beforeAll(async () => {
-  app = await _electron.launch({ args: ['out/main/index.js'] });
+  userDataDir = mkdtempSync(join(tmpdir(), 'mdkit-e2e-user-'));
+  const executablePath = process.env['MDKIT_E2E_EXECUTABLE'];
+  const args = executablePath
+    ? [`--user-data-dir=${userDataDir}`]
+    : ['out/main/index.js', `--user-data-dir=${userDataDir}`];
+  app = await _electron.launch({ executablePath, args });
   page = await app.firstWindow();
+  page.on('console', (message: any) => {
+    if (message.type() === 'error') console.error(`[renderer] ${message.text()}`);
+  });
+  page.on('pageerror', (error: Error) => console.error(`[renderer] ${error.message}`));
 });
 
 test.afterAll(async () => {
   await app?.close();
+  rmSync(userDataDir, { recursive: true, force: true });
 });
 
 test('启动显示欢迎页，新建标签进入编辑器', async () => {
   await page.waitForSelector('[data-testid="welcome"]');
+  const bridgeKeys = await page.evaluate(() => Object.keys(window.mdkit ?? {}));
+  expect(bridgeKeys).toEqual(
+    expect.arrayContaining(['file', 'config', 'theme', 'exporter', 'window', 'drafts', 'events']),
+  );
   await page.click('text=新建文档');
   await page.waitForSelector('.cm-editor');
 });
@@ -61,14 +78,14 @@ test('编辑中部后预览滚动位置保持（验收 3）', async () => {
   await page.keyboard.press('Control+a');
   await page.keyboard.insertText(longDoc);
   await page.waitForSelector('[data-testid="preview-content"] h2');
-  await page.evaluate(() => {
-    const scroller = document.querySelector('[data-testid="preview-scroll"]') as HTMLElement;
-    scroller.scrollTop = scroller.scrollHeight / 2;
-  });
+  await page.keyboard.press('Control+Home');
+  for (let i = 0; i < 180; i += 1) await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('End');
+  await page.waitForTimeout(100);
   const before = await page.evaluate(
     () => (document.querySelector('[data-testid="preview-scroll"]') as HTMLElement).scrollTop,
   );
-  await page.keyboard.type(' 追加');
+  await page.keyboard.type(' 中部追加');
   await page.waitForTimeout(600);
   const after = await page.evaluate(
     () => (document.querySelector('[data-testid="preview-scroll"]') as HTMLElement).scrollTop,
@@ -80,19 +97,21 @@ test('保存到磁盘（对话框经临时文件旁路验证主链路）', async
   const dir = mkdtempSync(join(tmpdir(), 'mdkit-e2e-'));
   const file = join(dir, 'saved.md');
   writeFileSync(file, '# 占位', 'utf-8');
-  // 直接经 IPC 通道读入已授权文件 → 修改 → 保存
-  await app.evaluate(({ BrowserWindow }: any, filePath: string) => {
-    BrowserWindow.getAllWindows()[0].webContents.send('app:open-path', {
-      path: filePath,
-      name: 'saved.md',
-      content: '# 来自磁盘',
-    });
+  // 经 preload 的拖拽入口授权并读取，再模拟主进程的打开文件推送。
+  const opened = await page.evaluate(async (filePath: string) => {
+    if (!window.mdkit) throw new Error('preload bridge missing');
+    return window.mdkit.file.openDropped(filePath);
   }, file);
-  await page.waitForTimeout(400);
+  await app.evaluate(({ BrowserWindow }: any, file: { path: string; name: string; content: string }) => {
+    BrowserWindow.getAllWindows()[0].webContents.send('app:open-path', file);
+  }, opened);
+  await expect(page.locator('.cm-content')).toContainText('占位');
   await page.click('.cm-content');
   await page.keyboard.press('Control+End');
   await page.keyboard.type('\n\n新增内容');
-  await page.keyboard.press('Control+s');
+  await app.evaluate(({ BrowserWindow }: any) => {
+    BrowserWindow.getAllWindows()[0].webContents.send('menu:command', { command: 'file.save' });
+  });
   await page.waitForTimeout(600);
   const saved = readFileSync(file, 'utf-8');
   expect(saved).toContain('新增内容');

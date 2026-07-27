@@ -76,7 +76,7 @@ export type UserConfig = z.infer<typeof userConfigSchema>;
 
 /** 深合并补丁（仅一层嵌套对象；数组与标量整体替换） */
 export const userConfigPatchSchema = userConfigSchema.deepPartial();
-export type UserConfigPatch = z.infer<typeof userConfigPatchSchema>;
+export type UserConfigPatch = z.input<typeof userConfigPatchSchema>;
 
 export function defaultUserConfig(): UserConfig {
   return userConfigSchema.parse({});

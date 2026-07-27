@@ -36,7 +36,7 @@ function buildProcessor(docPath: string | null, output: PostProcessOutput): Proc
     })
     .use(rehypeSanitize, sanitizeSchema)
     .use(postProcessPlugin, { docPath, output })
-    .use(rehypeKatex, { errorColor: 'var(--mk-error-fg)', strict: 'ignore', throwOnError: false })
+    .use(rehypeKatex, { errorColor: 'var(--mk-error-fg)', strict: 'ignore' })
     .use(rehypeHighlight, { detect: false })
     .use(rehypeStringify) as unknown as Processor;
 }

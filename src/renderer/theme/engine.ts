@@ -1,24 +1,31 @@
 /**
- * 主题引擎内部实现：注册表 + Ajv 校验 + 应用 + 失败回退。
+ * 主题引擎内部实现：注册表 + Zod 校验 + 应用 + 失败回退。
  * 主题切换只更新 CSS 变量（决策输入 §9），不触发 Markdown 重解析。
  */
-import Ajv, { type ValidateFunction } from 'ajv';
+import { z } from 'zod';
 import type { ThemeDefinition, ThemeSummary } from '@shared/theme-types';
 import { FALLBACK_THEME_ID } from '@shared/constants';
-import { themeJsonSchema } from './theme-schema';
+import { THEME_TOKEN_KEYS } from './theme-schema';
 import { applyVars, editorScopeVars, previewScopeVars } from './apply';
 import lightDefault from './builtin/light-default.json';
 import lightSepia from './builtin/light-sepia.json';
 import darkDefault from './builtin/dark-default.json';
 import darkOcean from './builtin/dark-ocean.json';
 
-const ajv = new Ajv({ allErrors: true });
-let compiled: ValidateFunction | null = null;
-
-function validator(): ValidateFunction {
-  if (!compiled) compiled = ajv.compile(themeJsonSchema as unknown as object);
-  return compiled;
-}
+const colorSchema = z.string().regex(/^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/);
+const tokenShape = Object.fromEntries(THEME_TOKEN_KEYS.map((key) => [key, colorSchema]));
+const highlightShape = Object.fromEntries(
+  ['keyword', 'string', 'comment', 'number', 'title', 'attr'].map((key) => [key, colorSchema.optional()]),
+);
+const themeSchema = z
+  .object({
+    id: z.string().regex(/^[a-z0-9][a-z0-9-]{1,63}$/),
+    name: z.string().min(1).max(64),
+    kind: z.enum(['light', 'dark']),
+    tokens: z.object(tokenShape).strict(),
+    codeHighlight: z.object(highlightShape).strict().optional(),
+  })
+  .strict();
 
 export interface ThemeValidation {
   ok: boolean;
@@ -28,13 +35,11 @@ export interface ThemeValidation {
 
 /** 校验主题 JSON（自定义导入与内置主题共用同一 Schema） */
 export function validateTheme(raw: unknown): ThemeValidation {
-  const validate = validator();
-  if (validate(raw)) {
-    return { ok: true, theme: raw as unknown as ThemeDefinition };
+  const result = themeSchema.safeParse(raw);
+  if (result.success) {
+    return { ok: true, theme: result.data as unknown as ThemeDefinition };
   }
-  const errors = (validate.errors ?? []).map(
-    (e) => `${e.instancePath || '(根)'} ${e.message ?? '非法'}`,
-  );
+  const errors = result.error.issues.map((issue) => `${issue.path.join('.') || '(根)'} ${issue.message}`);
   return { ok: false, errors };
 }
 

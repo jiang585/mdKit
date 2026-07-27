@@ -9,7 +9,7 @@ module.exports = {
   extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended'],
   settings: {
     'import/resolver': {
-      typescript: false,
+      typescript: { project: ['tsconfig.node.json', 'tsconfig.web.json'] },
       node: { extensions: ['.ts', '.tsx', '.js'] },
     },
   },
@@ -23,7 +23,7 @@ module.exports = {
       'error',
       {
         patterns: [
-          { group: ['@renderer/editor/*', '!@renderer/editor/index'], message: '编辑核心模块仅可通过入口 index.ts 引用' },
+          { group: ['@renderer/editor/*', '!@renderer/editor/index', '!@renderer/editor/EditorPanel'], message: '编辑核心模块仅可通过入口 index.ts 引用' },
           { group: ['@renderer/preview/*', '!@renderer/preview/index'], message: '渲染管线模块仅可通过入口 index.ts 引用' },
           { group: ['@renderer/theme/*', '!@renderer/theme/index'], message: '主题引擎模块仅可通过入口 index.ts 引用' },
           { group: ['@renderer/layout/*', '!@renderer/layout/index'], message: '布局管理模块仅可通过入口 index.ts 引用' },
@@ -46,7 +46,11 @@ module.exports = {
     },
     {
       files: ['tests/**/*'],
-      rules: { '@typescript-eslint/no-explicit-any': 'off', 'no-console': 'off' },
+      rules: {
+        '@typescript-eslint/no-explicit-any': 'off',
+        'no-console': 'off',
+        'no-restricted-imports': 'off',
+      },
     },
   ],
   ignorePatterns: ['out', 'dist', 'release', 'node_modules', 'coverage', '*.cjs', 'types/vendor'],

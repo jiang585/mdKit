@@ -57,6 +57,12 @@ export function createMainWindow(): BrowserWindow {
   });
 
   win.once('ready-to-show', () => win.show());
+  win.webContents.on('preload-error', (_event, preloadPath, error) => {
+    log.error(`Preload 加载失败：${preloadPath}`, error);
+  });
+  win.webContents.on('render-process-gone', (_event, details) => {
+    log.error(`渲染进程异常退出：${details.reason} (${details.exitCode})`);
+  });
 
   // 外部链接交给系统浏览器（协议白名单），窗口内不导航
   win.webContents.setWindowOpenHandler(({ url }) => {

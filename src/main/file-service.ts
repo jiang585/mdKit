@@ -2,7 +2,7 @@
  * 文件管理模块（主进程侧）：打开/读取/保存/另存为/最近文件。
  * 边界：文件路径只能来自系统对话框、最近文件或拖拽授权（决策输入 §4）。
  */
-import { BrowserWindow, dialog } from 'electron';
+import { dialog, type BrowserWindow } from 'electron';
 import { readFile, writeFile } from 'node:fs/promises';
 import { basename } from 'node:path';
 import type { OpenedFile } from '@shared/ipc-contract';

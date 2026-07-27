@@ -15,11 +15,12 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "useDefineForClassFields": true,
+    "types": ["vite/client", "@testing-library/jest-dom"],
     "noEmit": true,
     "paths": {
       "@renderer/*": ["./src/renderer/*"],
       "@shared/*": ["./src/shared/*"]
     }
   },
-  "include": ["src/renderer/**/*", "src/shared/**/*", "tests/unit/**/*", "tests/component/**/*", "tests/integration/**/*", "tests/perf/**/*"]
+  "include": ["src/renderer/**/*", "src/shared/**/*", "tests/setup.ts", "tests/unit/**/*", "tests/component/**/*", "tests/integration/**/*", "tests/perf/**/*"]
 }

@@ -29,7 +29,8 @@ export interface RenderScheduler {
 export function createRenderScheduler(options: SchedulerOptions): RenderScheduler {
   const debounceMs = options.debounceMs ?? RENDER_DEBOUNCE_MS;
   let worker: Worker | null = null;
-  let workerFailures = 0;
+  let workerUnavailable = false;
+  let pendingRequest: RenderRequest | null = null;
   let delivered = -1;
   let disposed = false;
 
@@ -41,20 +42,30 @@ export function createRenderScheduler(options: SchedulerOptions): RenderSchedule
     options.onResult(result);
   };
 
+  const renderOnMainThread = (req: RenderRequest): void => {
+    void import('./worker/pipeline')
+      .then(({ renderMarkdown }) => renderMarkdown(req))
+      .then(deliver)
+      .catch((error: unknown) => {
+        const message = error instanceof Error ? error.message : String(error);
+        options.onFatal?.(`Markdown 渲染失败：${message}`);
+      });
+  };
+
   const ensureWorker = (): Worker | null => {
+    if (workerUnavailable) return null;
     if (worker) return worker;
     try {
       worker = new Worker(new URL('./worker/render.worker.ts', import.meta.url), { type: 'module' });
       worker.onmessage = (event: MessageEvent<{ type: string; res?: RenderResult }>) => {
         if (event.data.type === 'result' && event.data.res) deliver(event.data.res);
       };
-      worker.onerror = () => {
-        workerFailures += 1;
+      worker.onerror = (event) => {
+        console.error(`[preview] 渲染 Worker 加载失败：${event.message || '未知错误'}`);
+        workerUnavailable = true;
         worker?.terminate();
         worker = null;
-        if (workerFailures > 2) {
-          options.onFatal?.('渲染线程多次崩溃，请保存文档后重启应用');
-        }
+        if (pendingRequest) renderOnMainThread(pendingRequest);
       };
       return worker;
     } catch {
@@ -68,6 +79,7 @@ export function createRenderScheduler(options: SchedulerOptions): RenderSchedule
     const { markdown, revision, docPath } = options.getSnapshot();
     if (revision <= delivered) return;
     const req: RenderRequest = { revision, markdown, docPath };
+    pendingRequest = req;
 
     if (options.rendererOverride) {
       void options.rendererOverride(req).then(deliver);
@@ -77,8 +89,7 @@ export function createRenderScheduler(options: SchedulerOptions): RenderSchedule
     if (w) {
       w.postMessage({ type: 'render', req });
     } else {
-      // 动态导入管线做主线程降级（仅测试/异常场景）
-      void import('./worker/pipeline').then(({ renderMarkdown }) => renderMarkdown(req).then(deliver));
+      renderOnMainThread(req);
     }
   };
 

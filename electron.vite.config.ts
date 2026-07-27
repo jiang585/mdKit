@@ -12,6 +12,11 @@ import { resolve } from 'node:path';
 export default defineConfig({
   main: {
     plugins: [externalizeDepsPlugin()],
+    resolve: {
+      alias: {
+        '@shared': resolve(__dirname, 'src/shared'),
+      },
+    },
     build: {
       rollupOptions: {
         input: { index: resolve(__dirname, 'src/main/index.ts') },
@@ -19,7 +24,13 @@ export default defineConfig({
     },
   },
   preload: {
-    plugins: [externalizeDepsPlugin()],
+    // Sandbox preload cannot resolve packages from node_modules at runtime.
+    plugins: [externalizeDepsPlugin({ exclude: ['zod'] })],
+    resolve: {
+      alias: {
+        '@shared': resolve(__dirname, 'src/shared'),
+      },
+    },
     build: {
       rollupOptions: {
         input: { index: resolve(__dirname, 'src/preload/index.ts') },
@@ -33,6 +44,15 @@ export default defineConfig({
       alias: {
         '@renderer': resolve(__dirname, 'src/renderer'),
         '@shared': resolve(__dirname, 'src/shared'),
+        // Vite's browser condition picks a DOM decoder that crashes inside Web Workers.
+        'decode-named-character-reference': resolve(
+          __dirname,
+          'node_modules/decode-named-character-reference/index.js',
+        ),
+        'hast-util-from-html-isomorphic': resolve(
+          __dirname,
+          'node_modules/hast-util-from-html-isomorphic/index.js',
+        ),
       },
     },
     build: {

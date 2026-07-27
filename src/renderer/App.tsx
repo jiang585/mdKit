@@ -376,27 +376,32 @@ export function App() {
   /* ---------- 初始化 ---------- */
   useEffect(() => {
     let disposed = false;
+    const autosave = autosaveRef.current;
     void (async () => {
-      const cfg = await bridge().config.get();
-      if (disposed) return;
-      setConfig(cfg);
-      useLayoutStore.getState().hydrate(cfg.layout);
-      useAiStore.getState().hydrateProfiles(cfg.ai.profiles, cfg.ai.activeProfileId);
-
-      const applied = await themeEngine.init(cfg.theme.editorThemeId, cfg.theme.previewThemeId);
-      if (disposed) return;
-      setThemes(themeEngine.list());
-      syncThemeUi(applied.editorThemeId);
-      if (applied.fellBack) toast('warning', '持久化主题不可用，已回退默认浅色主题');
-
-      await refreshRecent();
-
-      // 崩溃恢复提示（可用性 §3.3）
       try {
+        const cfg = await bridge().config.get();
+        if (disposed) return;
+        setConfig(cfg);
+        useLayoutStore.getState().hydrate(cfg.layout);
+        useAiStore.getState().hydrateProfiles(cfg.ai.profiles, cfg.ai.activeProfileId);
+
+        const applied = await themeEngine.init(cfg.theme.editorThemeId, cfg.theme.previewThemeId);
+        if (disposed) return;
+        setThemes(themeEngine.list());
+        syncThemeUi(applied.editorThemeId);
+        if (applied.fellBack) toast('warning', '持久化主题不可用，已回退默认浅色主题');
+
+        await refreshRecent();
+
+        // 崩溃恢复提示（可用性 §3.3）
         const drafts = await bridge().drafts.list();
         if (!disposed && drafts.length > 0) setRecoveryDrafts(drafts);
-      } catch {
-        /* 忽略 */
+      } catch (err) {
+        if (!disposed) {
+          const message = err instanceof Error ? err.message : '未知错误';
+          console.error('应用初始化失败', err);
+          toast('error', `应用初始化失败：${message}`);
+        }
       }
     })();
 
@@ -412,7 +417,7 @@ export function App() {
       offMenu();
       offOpenPath();
       schedulerRef.current?.dispose();
-      autosaveRef.current.dispose();
+      autosave.dispose();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
