@@ -130,4 +130,4 @@ v1.0.0 正式发布前由 opencode (deepseek-v4-flash) 完成一轮全面的故�
 ## 来源
 
 仓库：`git@github.com:jiang585/mdKit.git`  
-提交：`0a87423 fix(runtime): 修复 Electron 功能链路并完善验证`
+提交：`e7a0338 fix(runtime): 修复 Electron 功能链路并完善验证`
