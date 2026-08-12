@@ -17,8 +17,7 @@ asar: true
 # 离线可用（D3）：KaTeX 字体/样式、高亮与主题全部打进 out/renderer 资源。
 
 win:
-  # 不做代码签名；关闭 rcedit 以支持在非 Windows 平台交叉打包
-  signAndEditExecutable: false
+  icon: build/icon.png
   target:
     - target: nsis
       arch: [x64]
@@ -35,5 +34,9 @@ nsis:
 
 portable:
   artifactName: MD工具箱-Portable-${version}.${ext}
+
+extraResources:
+  - from: build/icon.png
+    to: icon.png
 
 npmRebuild: false

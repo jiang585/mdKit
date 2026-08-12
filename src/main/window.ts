@@ -2,12 +2,19 @@
  * 主窗口工厂：安全基线（决策输入 §4）
  * contextIsolation:true / nodeIntegration:false / sandbox:true / 严格 CSP / 外链交系统浏览器。
  */
-import { BrowserWindow, session, shell } from 'electron';
+import { app, BrowserWindow, session, shell } from 'electron';
 import { join } from 'node:path';
 import { DOC_ASSET_PROTOCOL, MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH, SAFE_LINK_PROTOCOLS } from '@shared/constants';
 import { log } from './logger';
 
 const isDev = !!process.env['ELECTRON_RENDERER_URL'];
+
+function iconPath(): string {
+  if (app.isPackaged) {
+    return join(process.resourcesPath, 'icon.png');
+  }
+  return join(__dirname, '../../build/icon.png');
+}
 
 function cspValue(): string {
   // KaTeX 需要行内 style 属性；图片允许 https/data/自定义文档协议；连接仅允许自身（AI 走主进程）
@@ -46,6 +53,7 @@ export function createMainWindow(): BrowserWindow {
     minHeight: MIN_WINDOW_HEIGHT,
     show: false,
     backgroundColor: '#f7f7f8',
+    icon: iconPath(),
     title: 'MD工具箱',
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
