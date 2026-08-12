@@ -22,3 +22,7 @@ npm-debug.log*
 # 系统文件
 .DS_Store
 Thumbs.db
+
+# 交付归档（含完整 git 历史的整包，发布到 GitHub Release 而非仓库）
+mdKit-*.zip
+解压项目.bat
