@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="docs/logo.png" width="96" height="96" alt="MD工具箱 logo" />
+
 # MD工具箱（mdKit）
 
 **轻量、高性能的 Markdown 编辑与预览桌面工具箱**
