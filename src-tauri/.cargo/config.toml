@@ -1,0 +1,17 @@
+# 本机未装 MSVC VC 工具链：使用 rustup windows-gnu 工具链 + 本机 MinGW-W64 GCC 8.1.0 链接
+# crates.io 走国内镜像（rsproxy.cn）
+[source.crates-io]
+replace-with = 'rsproxy-sparse'
+
+[source.rsproxy-sparse]
+registry = "sparse+https://rsproxy.cn/index/"
+
+[http]
+check-revoke = false
+
+[net]
+git-fetch-with-cli = true
+
+[target.x86_64-pc-windows-gnu]
+linker = "C:/mingw64/bin/gcc.exe"
+rustflags = ["-C", "link-arg=-LG:/mdKit/src-tauri/lib"]

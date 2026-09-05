@@ -1,0 +1,20 @@
+node_modules/
+dist/
+out/
+coverage/
+*.tsbuildinfo
+.npm-cache/
+.vite/
+
+# Tauri / Rust
+src-tauri/target/
+src-tauri/gen/
+
+# 打包产物
+release/
+*.exe
+*.zip
+
+# 本地环境
+.DS_Store
+Thumbs.db

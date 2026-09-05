@@ -1,0 +1,280 @@
+/**
+ * 基础样式：变量兜底、重置、字体、滚动条、通用控件、动效（阶段5）。
+ * 所有颜色一律来自语义令牌 CSS 变量（主题引擎写入），组件零硬编码颜色。
+ */
+
+:root {
+  /* 令牌兜底值 = 默认浅色主题（主题引擎注入后覆盖） */
+  --mk-app-bg: #f7f7f8;
+  --mk-app-fg: #1f2328;
+  --mk-border: #e1e4e8;
+  --mk-accent: #2563eb;
+  --mk-accent-fg: #ffffff;
+  --mk-editor-bg: #ffffff;
+  --mk-editor-fg: #24292f;
+  --mk-editor-gutter-bg: #f7f7f8;
+  --mk-editor-gutter-fg: #a0a6ad;
+  --mk-editor-active-line: #f3f6fb;
+  --mk-editor-selection: #b6d7ff80;
+  --mk-editor-cursor: #2563eb;
+  --mk-syn-heading: #0550ae;
+  --mk-syn-emphasis: #953800;
+  --mk-syn-link: #0969da;
+  --mk-syn-code: #cf222e;
+  --mk-syn-quote: #57606a;
+  --mk-syn-meta: #8c959f;
+  --mk-preview-bg: #ffffff;
+  --mk-preview-fg: #24292f;
+  --mk-preview-heading: #111827;
+  --mk-preview-link: #0969da;
+  --mk-preview-code-bg: #f6f8fa;
+  --mk-preview-code-fg: #24292f;
+  --mk-preview-quote-bar: #d0d7de;
+  --mk-preview-quote-fg: #57606a;
+  --mk-preview-table-border: #d0d7de;
+  --mk-preview-table-stripe: #f6f8fa;
+  --mk-status-bar-bg: #2563eb;
+  --mk-status-bar-fg: #ffffff;
+  --mk-error-fg: #cf222e;
+  --mk-warning-fg: #9a6700;
+  --mk-success-fg: #1a7f37;
+  --mk-hl-keyword: #cf222e;
+  --mk-hl-string: #0a3069;
+  --mk-hl-comment: #6e7781;
+  --mk-hl-number: #0550ae;
+  --mk-hl-title: #8250df;
+  --mk-hl-attr: #116329;
+
+  /* 非主题令牌 */
+  --mk-font-ui: -apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+  --mk-font-mono: "Cascadia Code", Consolas, "JetBrains Mono", "Sarasa Mono SC", monospace;
+  --mk-editor-font-size: 14px;
+  --mk-radius: 8px;
+  --mk-radius-sm: 5px;
+  --mk-shadow-1: 0 1px 3px rgb(0 0 0 / 0.09);
+  --mk-shadow-2: 0 6px 24px rgb(0 0 0 / 0.16);
+  --mk-ease: cubic-bezier(0.25, 0.8, 0.35, 1);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--mk-font-ui);
+  font-size: 13px;
+  color: var(--mk-app-fg);
+  background: var(--mk-app-bg);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  /* 主题切换过渡（阶段5 动效） */
+  transition: background-color 200ms var(--mk-ease), color 200ms var(--mk-ease);
+}
+
+/* 分隔条拖拽期间禁用选中，保证拖拽跟手 */
+body.mk-resizing {
+  user-select: none;
+  cursor: col-resize;
+}
+
+/* ---------- 滚动条（窗口控件样式，阶段5） ---------- */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--mk-app-fg) 22%, transparent);
+  border-radius: 6px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--mk-app-fg) 38%, transparent);
+  background-clip: content-box;
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ---------- 通用控件 ---------- */
+.mk-btn {
+  appearance: none;
+  font: inherit;
+  padding: 6px 14px;
+  border-radius: var(--mk-radius-sm);
+  border: 1px solid var(--mk-border);
+  background: var(--mk-editor-bg);
+  color: var(--mk-app-fg);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 120ms var(--mk-ease), border-color 120ms var(--mk-ease), transform 80ms var(--mk-ease);
+}
+.mk-btn:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--mk-accent) 55%, var(--mk-border));
+  background: color-mix(in srgb, var(--mk-accent) 7%, var(--mk-editor-bg));
+}
+.mk-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+.mk-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.mk-btn-primary {
+  background: var(--mk-accent);
+  border-color: var(--mk-accent);
+  color: var(--mk-accent-fg);
+}
+.mk-btn-primary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--mk-accent) 88%, #000000);
+  border-color: color-mix(in srgb, var(--mk-accent) 88%, #000000);
+}
+.mk-btn kbd {
+  font-family: var(--mk-font-mono);
+  font-size: 0.85em;
+  opacity: 0.75;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  padding: 0 4px;
+}
+.mk-btn.mk-danger,
+.mk-link-btn.mk-danger {
+  color: var(--mk-error-fg);
+}
+
+.mk-icon-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 15px;
+  width: 26px;
+  height: 26px;
+  line-height: 1;
+  border-radius: var(--mk-radius-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 120ms var(--mk-ease);
+}
+.mk-icon-btn:hover {
+  background: color-mix(in srgb, var(--mk-app-fg) 10%, transparent);
+}
+
+.mk-link-btn {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 2px 4px;
+  font: inherit;
+  color: var(--mk-accent);
+  cursor: pointer;
+  border-radius: 3px;
+}
+.mk-link-btn:hover {
+  text-decoration: underline;
+}
+
+.mk-input,
+.mk-select,
+.mk-chat-input {
+  font: inherit;
+  color: var(--mk-app-fg);
+  background: var(--mk-editor-bg);
+  border: 1px solid var(--mk-border);
+  border-radius: var(--mk-radius-sm);
+  padding: 6px 10px;
+  outline: none;
+  transition: border-color 120ms var(--mk-ease), box-shadow 120ms var(--mk-ease);
+}
+.mk-input:focus,
+.mk-select:focus,
+.mk-chat-input:focus {
+  border-color: var(--mk-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--mk-accent) 25%, transparent);
+}
+.mk-input-num {
+  width: 84px;
+}
+.mk-input-key {
+  font-family: var(--mk-font-mono);
+  width: 220px;
+}
+.mk-input-overridden {
+  border-color: var(--mk-accent);
+}
+
+.mk-chip {
+  appearance: none;
+  font: inherit;
+  font-size: 12px;
+  border: 1px solid var(--mk-border);
+  background: transparent;
+  color: var(--mk-app-fg);
+  border-radius: 999px;
+  padding: 3px 12px;
+  cursor: pointer;
+  transition: all 140ms var(--mk-ease);
+}
+.mk-chip-on {
+  background: var(--mk-accent);
+  border-color: var(--mk-accent);
+  color: var(--mk-accent-fg);
+}
+
+.mk-badge {
+  font-size: 11px;
+  background: color-mix(in srgb, var(--mk-success-fg) 15%, transparent);
+  color: var(--mk-success-fg);
+  border-radius: 999px;
+  padding: 2px 10px;
+}
+
+/* 焦点可达性（无障碍对比，阶段5 色彩校准） */
+:focus-visible {
+  outline: 2px solid var(--mk-accent);
+  outline-offset: 1px;
+}
+
+/* ---------- 动画原语 ---------- */
+@keyframes mk-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes mk-pop-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes mk-slide-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes mk-caret-blink {
+  0%, 45% { opacity: 1; }
+  55%, 100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
