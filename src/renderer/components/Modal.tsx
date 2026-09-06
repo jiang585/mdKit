@@ -27,7 +27,10 @@ export const Modal = memo(function Modal({ open, title, onClose, children, foote
         <header className="mk-modal-header">
           <h2>{title}</h2>
           <button type="button" className="mk-icon-btn" aria-label="关闭" onClick={onClose}>
-            ×
+            <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <line x1="2" y1="2" x2="10" y2="10" />
+              <line x1="10" y1="2" x2="2" y2="10" />
+            </svg>
           </button>
         </header>
         <div className="mk-modal-body">{children}</div>

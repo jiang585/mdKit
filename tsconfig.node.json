@@ -14,11 +14,7 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "verbatimModuleSyntax": false,
-    "noEmit": true,
-    "paths": {
-      "@shared/*": ["./src/shared/*"]
-    }
+    "noEmit": true
   },
-  "include": ["src/main/**/*", "src/preload/**/*", "src/shared/**/*", "electron.vite.config.ts", "scripts/**/*"]
+  "include": ["vite.config.ts", "vitest.config.ts"]
 }

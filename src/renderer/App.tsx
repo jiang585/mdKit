@@ -62,6 +62,9 @@ export function App() {
   const prevTabIdRef = useRef<string | null>(null);
   const configRef = useRef<UserConfig | null>(null);
   const layoutModeRef = useRef(layoutMode);
+  // 滚动双向同步的防循环 guard：记录最近一次同步的来源与有效期
+  const scrollSyncSourceRef = useRef<'editor' | 'preview' | null>(null);
+  const scrollSyncUntilRef = useRef(0);
   const tabInitialContent = useRef(new Map<string, string>());
   const autosaveRef = useRef(createAutosave(() => editorRef.current?.getText() ?? null));
   configRef.current = config;
@@ -138,9 +141,12 @@ export function App() {
         setCursorLine((prev) => (prev === cursor.line ? prev : cursor.line));
       },
       onScrollAnchorChanged: (line: number) => {
-        if (layoutModeRef.current === 'split') {
-          previewRef.current?.scrollToLine(line, { behavior: 'auto', flash: false });
-        }
+        if (layoutModeRef.current !== 'split') return;
+        // 预览→编辑反向同步引起的编辑器滚动，不再回推预览（防循环）
+        if (Date.now() < scrollSyncUntilRef.current && scrollSyncSourceRef.current === 'preview') return;
+        scrollSyncSourceRef.current = 'editor';
+        scrollSyncUntilRef.current = Date.now() + 200;
+        previewRef.current?.scrollToLine(line, { behavior: 'auto', flash: false });
       },
     }),
     // 编辑器只创建一次；选项经 setOptions 动态调整
@@ -424,6 +430,7 @@ export function App() {
       offMenu();
       offOpenPath();
       schedulerRef.current?.dispose();
+      schedulerRef.current = null; // StrictMode 重挂载时 ensureScheduler 必须重建，而非复用已销毁实例
       autosave.dispose();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -548,6 +555,25 @@ export function App() {
     };
   }, [openFileAsTab, newTab]);
 
+  /* ---------- 拖拽打开（Tauri 原生拖拽事件：HTML5 drop 在 Tauri 下不触发） ---------- */
+  useEffect(() => {
+    const onDropPaths = bridge().file.onDropPaths;
+    if (!onDropPaths) return;
+    return onDropPaths((paths) => {
+      for (const path of paths) {
+        const name = path.split(/[\\/]/).pop() ?? path;
+        if (!/\.(md|markdown)$/i.test(name)) {
+          toast('warning', `已忽略非 Markdown 文件：${name}`);
+          continue;
+        }
+        void bridge()
+          .file.openDropped(path)
+          .then(openFileAsTab)
+          .catch(() => toast('error', `无法打开 ${name}`));
+      }
+    });
+  }, [openFileAsTab]);
+
   /* ---------- AI 行内辅助快捷键（F7.5，默认 Mod-k，可自定义） ---------- */
   useEffect(() => {
     const binding = config?.shortcuts['ai.inlineAssist'] ?? 'Mod-k';
@@ -571,6 +597,16 @@ export function App() {
   const handleAnchorChanged = useCallback((line: number, type: 'heading' | 'block') => {
     setReadingLine((prev) => (prev === line ? prev : line));
     appBus.emit('preview:scroll-anchor-changed', { anchorLine: line, anchorType: type });
+  }, []);
+
+  /* ---------- 预览 → 编辑区反向滚动同步（用户需求：双向跟随） ---------- */
+  const handlePreviewScrollLine = useCallback((line: number) => {
+    if (layoutModeRef.current !== 'split') return;
+    // 编辑器→预览同步引起的预览滚动，不再回推编辑器（防循环）
+    if (Date.now() < scrollSyncUntilRef.current && scrollSyncSourceRef.current === 'editor') return;
+    scrollSyncSourceRef.current = 'preview';
+    scrollSyncUntilRef.current = Date.now() + 200;
+    editorRef.current?.scrollToLine(line, { behavior: 'auto' });
   }, []);
   const handlePreviewReady = useCallback((controls: PreviewControls) => {
     previewRef.current = controls;
@@ -658,6 +694,7 @@ export function App() {
                 onOpenExternal={handleOpenExternal}
                 onImageClick={handleImageClick}
                 onAnchorChanged={handleAnchorChanged}
+                onScrollLine={handlePreviewScrollLine}
                 onReady={handlePreviewReady}
               />
             }

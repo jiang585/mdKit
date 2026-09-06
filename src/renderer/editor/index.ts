@@ -52,6 +52,8 @@ export interface EditorHandle {
   getRevision(): number;
   runCommand(commandId: string): boolean;
   setOptions(opts: { lineNumbers?: boolean; wordWrap?: boolean; shortcuts?: Record<string, string> }): void;
+  /** 滚动到指定文档行（预览区 → 编辑区反向同步用） */
+  scrollToLine(line: number, options?: { behavior?: ScrollBehavior }): void;
   /** 多标签页：捕获/恢复完整编辑状态（含撤销栈与选区） */
   captureState(): unknown;
   restoreState(state: unknown): void;
@@ -160,6 +162,13 @@ export function createEditor(options: EditorCreateOptions): EditorHandle {
     runCommand(commandId) {
       const command = editorCommands[commandId];
       return command ? command(view) : false;
+    },
+    scrollToLine(line: number, options?: { behavior?: ScrollBehavior }) {
+      const total = view.state.doc.lines;
+      if (total === 0) return;
+      const target = Math.min(Math.max(1, line), total);
+      const blockTop = view.lineBlockAt(view.state.doc.line(target).from).top;
+      view.scrollDOM.scrollTo({ top: Math.max(0, blockTop - 8), behavior: options?.behavior ?? 'auto' });
     },
     setOptions(opts) {
       const effects = [];

@@ -57,8 +57,17 @@ export function createRenderScheduler(options: SchedulerOptions): RenderSchedule
     if (worker) return worker;
     try {
       worker = new Worker(new URL('./worker/render.worker.ts', import.meta.url), { type: 'module' });
-      worker.onmessage = (event: MessageEvent<{ type: string; res?: RenderResult }>) => {
-        if (event.data.type === 'result' && event.data.res) deliver(event.data.res);
+      worker.onmessage = (event: MessageEvent<{ type: string; res?: RenderResult; message?: string }>) => {
+        if (event.data.type === 'result' && event.data.res) {
+          deliver(event.data.res);
+        } else if (event.data.type === 'worker-error') {
+          // Worker 内部渲染失败：降级主线程重试并留痕（避免预览静默空白）
+          console.error(`[preview] Worker 渲染失败，降级主线程：${event.data.message ?? '未知错误'}`);
+          workerUnavailable = true;
+          worker?.terminate();
+          worker = null;
+          if (pendingRequest) renderOnMainThread(pendingRequest);
+        }
       };
       worker.onerror = (event) => {
         console.error(`[preview] 渲染 Worker 加载失败：${event.message || '未知错误'}`);
@@ -88,6 +97,16 @@ export function createRenderScheduler(options: SchedulerOptions): RenderSchedule
     const w = ensureWorker();
     if (w) {
       w.postMessage({ type: 'render', req });
+      // 看门狗：Worker 无响应（含静默失败）4s 后降级主线程渲染
+      const revision = req.revision;
+      window.setTimeout(() => {
+        if (disposed || delivered >= revision) return;
+        console.warn(`[preview] Worker 4s 无响应，降级主线程 rev=${revision}`);
+        workerUnavailable = true;
+        worker?.terminate();
+        worker = null;
+        renderOnMainThread(req);
+      }, 4000);
     } else {
       renderOnMainThread(req);
     }
