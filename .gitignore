@@ -14,6 +14,14 @@ src-tauri/gen/
 release/
 *.exe
 *.zip
+*.bat
+
+# 临时与测试产物
+.qqbot-tool/
+qqbot-dump-config.txt
+ds-daily-log/
+test-results/
+DSH-*.md
 
 # 本地环境
 .DS_Store
