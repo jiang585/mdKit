@@ -22,12 +22,14 @@ export interface PreviewPanelProps {
   onOpenExternal: (url: string) => void;
   onImageClick: (src: string, alt: string) => void;
   onAnchorChanged: (line: number, type: 'heading' | 'block') => void;
+  /** 预览区用户滚动 → 顶部可见行（反向同步到编辑区） */
+  onScrollLine?: (line: number) => void;
   onReady?: (controls: PreviewControls) => void;
   className?: string;
 }
 
 export const PreviewPanel = memo(function PreviewPanel(props: PreviewPanelProps) {
-  const { result, dark, cursorLine, syncCursor, onOpenExternal, onImageClick, onAnchorChanged, onReady } =
+  const { result, dark, cursorLine, syncCursor, onOpenExternal, onImageClick, onAnchorChanged, onScrollLine, onReady } =
     props;
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
@@ -155,9 +157,10 @@ export const PreviewPanel = memo(function PreviewPanel(props: PreviewPanelProps)
       if (state.line >= 0) {
         const anchorMeta = anchorsRef.current.find((a) => a.line === state.line);
         onAnchorChanged(state.line, anchorMeta && /^h[1-6]$/.test(anchorMeta.tag) ? 'heading' : 'block');
+        onScrollLine?.(state.line);
       }
     });
-  }, [onAnchorChanged]);
+  }, [onAnchorChanged, onScrollLine]);
 
   useEffect(() => () => cancelAnimationFrame(scrollRafRef.current), []);
 

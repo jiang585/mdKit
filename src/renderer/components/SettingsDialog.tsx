@@ -98,7 +98,32 @@ export const SettingsDialog = memo(function SettingsDialog(props: SettingsDialog
               type="button"
               className={`mk-settings-nav-item ${section === s.id ? 'mk-settings-nav-on' : ''}`}
               onClick={() => setSection(s.id)}
+              style={{ display: 'flex', alignItems: 'center', gap: 8 }}
             >
+              {s.id === 'general' && (
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6">
+                  <path d="M2 4h12M2 8h12M2 12h12M5 2v4M11 6v4M7 10v4" strokeLinecap="round" />
+                </svg>
+              )}
+              {s.id === 'theme' && (
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6">
+                  <circle cx="8" cy="8" r="6" />
+                  <circle cx="6" cy="6" r="1" fill="currentColor" />
+                  <circle cx="10" cy="6" r="1" fill="currentColor" />
+                  <circle cx="6" cy="10" r="1" fill="currentColor" />
+                </svg>
+              )}
+              {s.id === 'shortcuts' && (
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6">
+                  <rect x="2" y="3" width="12" height="10" rx="2" />
+                  <path d="M5 6h.01M8 6h.01M11 6h.01M5 9h.01M8 9h.01M11 9h.01" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+              )}
+              {s.id === 'ai' && (
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6">
+                  <path d="M8 1.5l1.5 4.5L14 7.5l-4.5 1.5L8 13.5l-1.5-4.5L2 7.5l4.5-1.5L8 1.5z" strokeLinejoin="round" />
+                </svg>
+              )}
               {s.label}
             </button>
           ))}

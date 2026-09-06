@@ -1,7 +1,7 @@
 /**
  * 主进程桥接的类型化访问点。
- * Electron 环境使用 preload 暴露的 window.mdkit；
- * 浏览器/测试环境自动降级为内存 Mock（供组件测试与浏览器 E2E 使用）。
+ * Tauri 环境由 src/tauri-bridge 自注入 window.mdkit（Rust 壳）；
+ * 浏览器/测试环境自动降级为内存 Mock（供组件测试使用）。
  */
 import type { UserConfig, UserConfigPatch } from '@shared/config-schema';
 import { defaultUserConfig, mergeConfig } from '@shared/config-schema';
@@ -19,6 +19,8 @@ export interface Bridge {
     saveAs(defaultName: string, content: string): Promise<{ path: string; name: string } | null>;
     recentList(): Promise<RecentFile[]>;
     recentClear(): Promise<{ ok: boolean }>;
+    /** 桌面壳原生拖拽事件（Tauri 实现；浏览器/Mock 无此能力，返回 undefined） */
+    onDropPaths?(cb: (paths: string[]) => void): Unsubscribe;
   };
   config: {
     get(): Promise<UserConfig>;
@@ -130,13 +132,14 @@ function createBrowserMock(): Bridge {
 
 let cachedBridge: Bridge | null = null;
 
-/** 获取桥接实例（Electron 优先，浏览器降级 Mock） */
+/** 获取桥接实例（桌面壳优先，浏览器降级 Mock） */
 export function bridge(): Bridge {
   if (cachedBridge) return cachedBridge;
   cachedBridge = (typeof window !== 'undefined' && window.mdkit) || createBrowserMock();
   return cachedBridge;
 }
 
+/** 是否运行在桌面壳（Tauri/Electron）内；浏览器与测试环境为 false */
 export function isElectron(): boolean {
   return typeof window !== 'undefined' && Boolean(window.mdkit);
 }

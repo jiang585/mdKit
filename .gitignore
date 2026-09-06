@@ -1,28 +1,28 @@
-opencode.json
-
-# 依赖
 node_modules/
-
-# 构建产物
-out/
 dist/
-release/
-*.tsbuildinfo
-
-# 测试与覆盖率
+out/
 coverage/
-playwright-report/
+*.tsbuildinfo
+.npm-cache/
+.vite/
+
+# Tauri / Rust
+src-tauri/target/
+src-tauri/gen/
+
+# 打包产物
+release/
+*.exe
+*.zip
+*.bat
+
+# 临时与测试产物
+.qqbot-tool/
+qqbot-dump-config.txt
+ds-daily-log/
 test-results/
+DSH-*.md
 
-# 日志
-logs/
-*.log
-npm-debug.log*
-
-# 系统文件
+# 本地环境
 .DS_Store
 Thumbs.db
-
-# 交付归档（含完整 git 历史的整包，发布到 GitHub Release 而非仓库）
-mdKit-*.zip
-解压项目.bat

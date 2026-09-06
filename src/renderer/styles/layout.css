@@ -1,6 +1,6 @@
 /**
- * 应用骨架：标签栏 / 工作区分屏 / TOC / 状态栏（界面需求 §5.1 布局约束）。
- * 响应式：flex 布局随窗口缩放自适应，最小窗口尺寸由主进程约束（阶段5）。
+ * 应用骨架：标签栏 / 工作区分屏 / TOC / 状态栏。
+ * 高端极简桌面 UI 架构：极低视觉噪音、清晰的景深层级与流体交互。
  */
 
 .mk-app {
@@ -8,6 +8,7 @@
   display: flex;
   flex-direction: column;
   background: var(--mk-app-bg);
+  position: relative;
 }
 
 /* ---------- 标签页 ---------- */
@@ -16,44 +17,61 @@
   align-items: stretch;
   background: var(--mk-app-bg);
   border-bottom: 1px solid var(--mk-border);
-  min-height: 36px;
-  padding: 4px 6px 0;
-  gap: 2px;
+  min-height: 40px;
+  padding: 6px 8px 0;
+  gap: 4px;
   flex: none;
+  z-index: 10;
 }
 .mk-tabbar-scroll {
   display: flex;
-  gap: 2px;
+  gap: 4px;
   overflow-x: auto;
-  scrollbar-width: thin;
+  scrollbar-width: none;
 }
 .mk-tabbar-scroll::-webkit-scrollbar {
-  height: 4px;
+  display: none;
 }
 .mk-tab {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  max-width: 200px;
-  padding: 0 8px 0 10px;
+  gap: 8px;
+  max-width: 220px;
+  padding: 0 10px 0 12px;
   border-radius: var(--mk-radius-sm) var(--mk-radius-sm) 0 0;
   border: 1px solid transparent;
   border-bottom: none;
-  color: color-mix(in srgb, var(--mk-app-fg) 72%, transparent);
+  color: color-mix(in srgb, var(--mk-app-fg) 68%, transparent);
   cursor: pointer;
   user-select: none;
   white-space: nowrap;
-  transition: background 120ms var(--mk-ease), color 120ms var(--mk-ease);
+  font-size: 13px;
+  font-weight: 450;
+  letter-spacing: -0.01em;
+  transition: all 140ms var(--mk-ease);
   animation: mk-fade-in 160ms var(--mk-ease);
+  position: relative;
 }
 .mk-tab:hover {
-  background: color-mix(in srgb, var(--mk-app-fg) 6%, transparent);
+  background: color-mix(in srgb, var(--mk-app-fg) 5%, transparent);
+  color: var(--mk-app-fg);
 }
 .mk-tab-active {
   background: var(--mk-editor-bg);
   border-color: var(--mk-border);
   color: var(--mk-app-fg);
-  position: relative;
+  font-weight: 550;
+  box-shadow: 0 -2px 6px -1px rgb(0 0 0 / 0.03);
+}
+.mk-tab-active::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--mk-accent);
+  border-radius: 2px 2px 0 0;
 }
 .mk-tab-active::after {
   content: '';
@@ -66,32 +84,36 @@
   overflow: hidden;
   text-overflow: ellipsis;
   font-size: 12.5px;
-  line-height: 30px;
+  line-height: 32px;
 }
 .mk-tab-dot {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: transparent;
   flex: none;
-  transition: background 150ms var(--mk-ease);
+  transition: all 160ms var(--mk-ease);
 }
 .mk-tab-dot-dirty {
   background: var(--mk-warning-fg);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--mk-warning-fg) 70%, transparent);
 }
 .mk-tab-close {
   appearance: none;
   border: none;
   background: transparent;
-  color: inherit;
-  font-size: 14px;
+  color: color-mix(in srgb, var(--mk-app-fg) 55%, transparent);
+  font-size: 13px;
   width: 18px;
   height: 18px;
   line-height: 1;
-  border-radius: 3px;
+  border-radius: 4px;
   cursor: pointer;
   opacity: 0;
-  transition: opacity 100ms, background 100ms;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 120ms var(--mk-ease);
 }
 .mk-tab:hover .mk-tab-close,
 .mk-tab-active .mk-tab-close {
@@ -99,24 +121,35 @@
 }
 .mk-tab-close:hover {
   opacity: 1;
-  background: color-mix(in srgb, var(--mk-error-fg) 18%, transparent);
+  color: var(--mk-error-fg);
+  background: color-mix(in srgb, var(--mk-error-fg) 14%, transparent);
+  transform: scale(1.1);
 }
 .mk-tab-new {
   appearance: none;
   border: none;
   background: transparent;
-  color: color-mix(in srgb, var(--mk-app-fg) 60%, transparent);
-  font-size: 15px;
+  color: color-mix(in srgb, var(--mk-app-fg) 55%, transparent);
+  font-size: 16px;
   width: 30px;
+  height: 30px;
   border-radius: var(--mk-radius-sm);
   cursor: pointer;
   flex: none;
   align-self: center;
-  height: 28px;
+  margin-bottom: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 140ms var(--mk-ease);
 }
 .mk-tab-new:hover {
   background: color-mix(in srgb, var(--mk-app-fg) 8%, transparent);
   color: var(--mk-app-fg);
+  transform: scale(1.05);
+}
+.mk-tab-new:active {
+  transform: scale(0.95);
 }
 
 /* ---------- 主工作区 ---------- */
@@ -124,6 +157,7 @@
   flex: 1;
   display: flex;
   min-height: 0;
+  position: relative;
 }
 .mk-workbench {
   flex: 1;
@@ -158,8 +192,8 @@
 }
 .mk-split-divider {
   flex: none;
-  width: 7px;
-  margin: 0 -2px;
+  width: 9px;
+  margin: 0 -4px;
   cursor: col-resize;
   position: relative;
   z-index: 5;
@@ -169,16 +203,17 @@
   touch-action: none;
 }
 .mk-split-divider-grip {
-  width: 3px;
+  width: 2px;
   height: 100%;
-  border-radius: 2px;
   background: var(--mk-border);
-  transition: background 140ms var(--mk-ease), width 140ms var(--mk-ease);
+  transition: all 160ms var(--mk-ease);
+  position: relative;
 }
 .mk-split-divider:hover .mk-split-divider-grip,
 body.mk-resizing .mk-split-divider-grip {
   background: var(--mk-accent);
-  width: 4px;
+  width: 3px;
+  box-shadow: 0 0 8px color-mix(in srgb, var(--mk-accent) 60%, transparent);
 }
 
 .mk-editor-host {
@@ -187,7 +222,7 @@ body.mk-resizing .mk-split-divider-grip {
   display: flex;
   flex-direction: column;
   background: var(--mk-editor-bg);
-  transition: background-color 200ms var(--mk-ease);
+  transition: background-color 220ms var(--mk-ease);
 }
 .mk-editor-host .cm-editor {
   flex: 1;
@@ -196,31 +231,36 @@ body.mk-resizing .mk-split-divider-grip {
 
 /* ---------- TOC 侧栏 ---------- */
 .mk-toc {
-  width: 230px;
+  width: 240px;
   flex: none;
   border-right: 1px solid var(--mk-border);
   background: var(--mk-app-bg);
   display: flex;
   flex-direction: column;
-  animation: mk-fade-in 160ms var(--mk-ease);
+  animation: mk-fade-in 180ms var(--mk-ease);
   min-height: 0;
 }
 .mk-toc-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 10px;
+  padding: 10px 14px;
+  font-size: 12.5px;
   font-weight: 600;
+  letter-spacing: 0.02em;
+  color: color-mix(in srgb, var(--mk-app-fg) 80%, transparent);
   border-bottom: 1px solid var(--mk-border);
   flex: none;
 }
 .mk-toc nav {
   overflow-y: auto;
-  padding: 6px 0 16px;
+  padding: 8px 6px 20px;
 }
 .mk-toc-empty {
-  padding: 18px 14px;
-  color: color-mix(in srgb, var(--mk-app-fg) 55%, transparent);
+  padding: 24px 16px;
+  text-align: center;
+  font-size: 12.5px;
+  color: color-mix(in srgb, var(--mk-app-fg) 45%, transparent);
 }
 .mk-toc-item {
   display: block;
@@ -230,57 +270,80 @@ body.mk-resizing .mk-split-divider-grip {
   border: none;
   background: none;
   font: inherit;
-  color: color-mix(in srgb, var(--mk-app-fg) 80%, transparent);
-  padding: 4px 12px;
+  font-size: 12.5px;
+  color: color-mix(in srgb, var(--mk-app-fg) 75%, transparent);
+  padding: 6px 12px;
+  margin-bottom: 2px;
+  border-radius: var(--mk-radius-sm);
   cursor: pointer;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   border-left: 2px solid transparent;
-  transition: all 120ms var(--mk-ease);
+  transition: all 130ms var(--mk-ease);
 }
 .mk-toc-item:hover {
   color: var(--mk-accent);
   background: color-mix(in srgb, var(--mk-accent) 8%, transparent);
 }
 .mk-toc-passed {
-  border-left-color: color-mix(in srgb, var(--mk-accent) 45%, transparent);
+  color: var(--mk-app-fg);
+  border-left-color: var(--mk-accent);
+  background: color-mix(in srgb, var(--mk-accent) 5%, transparent);
+  font-weight: 500;
 }
 .mk-toc-l1 { padding-left: 12px; font-weight: 600; }
 .mk-toc-l2 { padding-left: 24px; }
-.mk-toc-l3 { padding-left: 36px; font-size: 12px; }
-.mk-toc-l4 { padding-left: 48px; font-size: 12px; }
+.mk-toc-l3 { padding-left: 36px; font-size: 12px; opacity: 0.9; }
+.mk-toc-l4 { padding-left: 48px; font-size: 11.5px; opacity: 0.8; }
 
-/* ---------- 状态栏（U4） ---------- */
+/* ---------- 状态栏（U4 胶囊风格） ---------- */
 .mk-statusbar {
   flex: none;
-  height: 24px;
+  height: 28px;
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 0 12px;
+  gap: 10px;
+  padding: 0 14px;
   background: var(--mk-status-bar-bg);
   color: var(--mk-status-bar-fg);
   font-size: 12px;
   user-select: none;
-  transition: background-color 200ms var(--mk-ease);
+  border-top: 1px solid color-mix(in srgb, var(--mk-status-bar-fg) 10%, transparent);
+  box-shadow: 0 -1px 3px rgb(0 0 0 / 0.04);
+  transition: background-color 220ms var(--mk-ease);
 }
 .mk-statusbar-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   white-space: nowrap;
-  opacity: 0.95;
+  padding: 2px 8px;
+  border-radius: var(--mk-radius-xs);
+  font-variant-numeric: tabular-nums;
+  opacity: 0.92;
+  transition: background 120ms var(--mk-ease), opacity 120ms var(--mk-ease);
+}
+.mk-statusbar-item:hover {
+  opacity: 1;
+  background: color-mix(in srgb, var(--mk-status-bar-fg) 10%, transparent);
 }
 .mk-statusbar-spacer {
   flex: 1;
 }
 .mk-status-warn {
-  color: color-mix(in srgb, var(--mk-status-bar-fg) 70%, #ffd75e);
+  color: #fbbf24;
   font-weight: 600;
+  background: color-mix(in srgb, #fbbf24 15%, transparent);
+  border-radius: var(--mk-radius-xs);
+  padding: 2px 6px;
 }
 .mk-status-saving {
+  color: #38bdf8;
   animation: mk-caret-blink 1.2s infinite;
 }
 
-/* ---------- 窄窗口自适应（阶段5 响应式） ---------- */
+/* ---------- 窄窗口自适应 ---------- */
 @media (max-width: 900px) {
   .mk-toc { width: 190px; }
   .mk-chat { width: 300px !important; }

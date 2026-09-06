@@ -1,6 +1,8 @@
 /**
  * 渲染进程入口：全局错误边界 + 未捕获异常上报（开发规范 §6）。
  */
+// 桥安装副作用随本 import 立即求值，且必须先于其余模块（任何组件可能在模块期读 bridge）
+import '../tauri-bridge';
 import { Component, StrictMode, type ErrorInfo, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { bridge } from '@renderer/shared/bridge';

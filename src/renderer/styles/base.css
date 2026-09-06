@@ -1,59 +1,64 @@
 /**
- * 基础样式：变量兜底、重置、字体、滚动条、通用控件、动效（阶段5）。
- * 所有颜色一律来自语义令牌 CSS 变量（主题引擎写入），组件零硬编码颜色。
+ * 基础样式：变量兜底、重置、现代排印、精细滚动条、通用控件、流体动效。
+ * 所有颜色来自语义令牌 CSS 变量（主题引擎注入后覆盖），极简、高级、无硬编码脏色。
  */
 
 :root {
   /* 令牌兜底值 = 默认浅色主题（主题引擎注入后覆盖） */
-  --mk-app-bg: #f7f7f8;
-  --mk-app-fg: #1f2328;
-  --mk-border: #e1e4e8;
+  --mk-app-bg: #f8fafc;
+  --mk-app-fg: #0f172a;
+  --mk-border: #e2e8f0;
   --mk-accent: #2563eb;
   --mk-accent-fg: #ffffff;
   --mk-editor-bg: #ffffff;
-  --mk-editor-fg: #24292f;
-  --mk-editor-gutter-bg: #f7f7f8;
-  --mk-editor-gutter-fg: #a0a6ad;
-  --mk-editor-active-line: #f3f6fb;
-  --mk-editor-selection: #b6d7ff80;
+  --mk-editor-fg: #1e293b;
+  --mk-editor-gutter-bg: #f8fafc;
+  --mk-editor-gutter-fg: #94a3b8;
+  --mk-editor-active-line: #f1f5f9;
+  --mk-editor-selection: #bfdbfe70;
   --mk-editor-cursor: #2563eb;
-  --mk-syn-heading: #0550ae;
-  --mk-syn-emphasis: #953800;
-  --mk-syn-link: #0969da;
-  --mk-syn-code: #cf222e;
-  --mk-syn-quote: #57606a;
-  --mk-syn-meta: #8c959f;
+  --mk-syn-heading: #1d4ed8;
+  --mk-syn-emphasis: #c2410c;
+  --mk-syn-link: #0284c7;
+  --mk-syn-code: #e11d48;
+  --mk-syn-quote: #64748b;
+  --mk-syn-meta: #94a3b8;
   --mk-preview-bg: #ffffff;
-  --mk-preview-fg: #24292f;
-  --mk-preview-heading: #111827;
-  --mk-preview-link: #0969da;
-  --mk-preview-code-bg: #f6f8fa;
-  --mk-preview-code-fg: #24292f;
-  --mk-preview-quote-bar: #d0d7de;
-  --mk-preview-quote-fg: #57606a;
-  --mk-preview-table-border: #d0d7de;
-  --mk-preview-table-stripe: #f6f8fa;
-  --mk-status-bar-bg: #2563eb;
-  --mk-status-bar-fg: #ffffff;
-  --mk-error-fg: #cf222e;
-  --mk-warning-fg: #9a6700;
-  --mk-success-fg: #1a7f37;
-  --mk-hl-keyword: #cf222e;
-  --mk-hl-string: #0a3069;
-  --mk-hl-comment: #6e7781;
-  --mk-hl-number: #0550ae;
-  --mk-hl-title: #8250df;
-  --mk-hl-attr: #116329;
+  --mk-preview-fg: #1e293b;
+  --mk-preview-heading: #0f172a;
+  --mk-preview-link: #2563eb;
+  --mk-preview-code-bg: #f1f5f9;
+  --mk-preview-code-fg: #0f172a;
+  --mk-preview-quote-bar: #3b82f6;
+  --mk-preview-quote-fg: #475569;
+  --mk-preview-table-border: #e2e8f0;
+  --mk-preview-table-stripe: #f8fafc;
+  --mk-status-bar-bg: #0f172a;
+  --mk-status-bar-fg: #f8fafc;
+  --mk-error-fg: #ef4444;
+  --mk-warning-fg: #f59e0b;
+  --mk-success-fg: #10b981;
+  --mk-hl-keyword: #7c3aed;
+  --mk-hl-string: #059669;
+  --mk-hl-comment: #94a3b8;
+  --mk-hl-number: #0284c7;
+  --mk-hl-title: #2563eb;
+  --mk-hl-attr: #ea580c;
 
-  /* 非主题令牌 */
-  --mk-font-ui: -apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
-  --mk-font-mono: "Cascadia Code", Consolas, "JetBrains Mono", "Sarasa Mono SC", monospace;
+  /* 现代高端非主题设计系统令牌 */
+  --mk-font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Display", "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --mk-font-mono: "Cascadia Code", "JetBrains Mono", SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
   --mk-editor-font-size: 14px;
-  --mk-radius: 8px;
-  --mk-radius-sm: 5px;
-  --mk-shadow-1: 0 1px 3px rgb(0 0 0 / 0.09);
-  --mk-shadow-2: 0 6px 24px rgb(0 0 0 / 0.16);
-  --mk-ease: cubic-bezier(0.25, 0.8, 0.35, 1);
+  --mk-radius-xs: 4px;
+  --mk-radius-sm: 6px;
+  --mk-radius: 9px;
+  --mk-radius-md: 12px;
+  --mk-radius-lg: 16px;
+  --mk-shadow-1: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06);
+  --mk-shadow-2: 0 4px 14px -2px rgb(0 0 0 / 0.1), 0 2px 6px -2px rgb(0 0 0 / 0.06);
+  --mk-shadow-pop: 0 20px 30px -10px rgb(0 0 0 / 0.2), 0 10px 14px -5px rgb(0 0 0 / 0.1);
+  --mk-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --mk-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 *,
@@ -72,47 +77,53 @@ body,
 
 body {
   font-family: var(--mk-font-ui);
-  font-size: 13px;
+  font-size: 13.5px;
+  letter-spacing: -0.01em;
   color: var(--mk-app-fg);
   background: var(--mk-app-bg);
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
-  /* 主题切换过渡（阶段5 动效） */
-  transition: background-color 200ms var(--mk-ease), color 200ms var(--mk-ease);
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  transition: background-color 220ms var(--mk-ease), color 220ms var(--mk-ease);
 }
 
-/* 分隔条拖拽期间禁用选中，保证拖拽跟手 */
+/* 分隔条拖拽期间禁用选中，保证平顺跟手 */
 body.mk-resizing {
   user-select: none;
   cursor: col-resize;
 }
 
-/* ---------- 滚动条（窗口控件样式，阶段5） ---------- */
+/* ---------- 现代精简滚动条（细腻无边框、悬浮浮出） ---------- */
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--mk-app-fg) 22%, transparent);
-  border-radius: 6px;
+  background: color-mix(in srgb, var(--mk-app-fg) 18%, transparent);
+  border-radius: 999px;
   border: 2px solid transparent;
-  background-clip: content-box;
+  background-clip: padding-box;
+  transition: background 150ms var(--mk-ease);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in srgb, var(--mk-app-fg) 38%, transparent);
-  background-clip: content-box;
+  background: color-mix(in srgb, var(--mk-app-fg) 34%, transparent);
+  background-clip: padding-box;
 }
 ::-webkit-scrollbar-corner {
   background: transparent;
 }
 
-/* ---------- 通用控件 ---------- */
+/* ---------- 现代精致控件 ---------- */
 .mk-btn {
   appearance: none;
   font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
   padding: 6px 14px;
   border-radius: var(--mk-radius-sm);
   border: 1px solid var(--mk-border);
@@ -121,93 +132,118 @@ body.mk-resizing {
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  transition: background 120ms var(--mk-ease), border-color 120ms var(--mk-ease), transform 80ms var(--mk-ease);
+  justify-content: center;
+  gap: 7px;
+  box-shadow: var(--mk-shadow-1);
+  transition: all 150ms var(--mk-ease);
 }
 .mk-btn:hover:not(:disabled) {
-  border-color: color-mix(in srgb, var(--mk-accent) 55%, var(--mk-border));
-  background: color-mix(in srgb, var(--mk-accent) 7%, var(--mk-editor-bg));
+  border-color: color-mix(in srgb, var(--mk-accent) 45%, var(--mk-border));
+  background: color-mix(in srgb, var(--mk-accent) 6%, var(--mk-editor-bg));
+  transform: translateY(-0.5px);
+  box-shadow: var(--mk-shadow-2);
 }
 .mk-btn:active:not(:disabled) {
-  transform: translateY(1px);
+  transform: translateY(1px) scale(0.99);
+  box-shadow: var(--mk-shadow-1);
 }
 .mk-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 .mk-btn-primary {
-  background: var(--mk-accent);
-  border-color: var(--mk-accent);
+  background: linear-gradient(180deg, var(--mk-accent) 0%, color-mix(in srgb, var(--mk-accent) 88%, #000) 100%);
+  border-color: color-mix(in srgb, var(--mk-accent) 90%, #000);
   color: var(--mk-accent-fg);
+  font-weight: 550;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.12), inset 0 1px 0 rgb(255 255 255 / 0.2);
 }
 .mk-btn-primary:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--mk-accent) 88%, #000000);
-  border-color: color-mix(in srgb, var(--mk-accent) 88%, #000000);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--mk-accent) 92%, #fff) 0%, var(--mk-accent) 100%);
+  border-color: var(--mk-accent);
+  box-shadow: 0 4px 12px -2px color-mix(in srgb, var(--mk-accent) 45%, transparent);
 }
 .mk-btn kbd {
   font-family: var(--mk-font-mono);
-  font-size: 0.85em;
-  opacity: 0.75;
-  border: 1px solid currentColor;
-  border-radius: 3px;
-  padding: 0 4px;
+  font-size: 0.8em;
+  font-weight: 500;
+  opacity: 0.8;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  border-radius: 4px;
+  padding: 1px 5px;
 }
 .mk-btn.mk-danger,
 .mk-link-btn.mk-danger {
   color: var(--mk-error-fg);
+}
+.mk-btn.mk-danger:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--mk-error-fg) 40%, var(--mk-border));
+  background: color-mix(in srgb, var(--mk-error-fg) 8%, var(--mk-editor-bg));
 }
 
 .mk-icon-btn {
   appearance: none;
   border: none;
   background: transparent;
-  color: inherit;
+  color: color-mix(in srgb, var(--mk-app-fg) 75%, transparent);
   font-size: 15px;
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   line-height: 1;
   border-radius: var(--mk-radius-sm);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: background 120ms var(--mk-ease);
+  transition: all 140ms var(--mk-ease);
 }
 .mk-icon-btn:hover {
-  background: color-mix(in srgb, var(--mk-app-fg) 10%, transparent);
+  color: var(--mk-app-fg);
+  background: color-mix(in srgb, var(--mk-app-fg) 9%, transparent);
+}
+.mk-icon-btn:active {
+  transform: scale(0.94);
 }
 
 .mk-link-btn {
   appearance: none;
   border: none;
   background: none;
-  padding: 2px 4px;
+  padding: 3px 6px;
   font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
   color: var(--mk-accent);
   cursor: pointer;
-  border-radius: 3px;
+  border-radius: var(--mk-radius-xs);
+  transition: all 120ms var(--mk-ease);
 }
 .mk-link-btn:hover {
-  text-decoration: underline;
+  background: color-mix(in srgb, var(--mk-accent) 10%, transparent);
 }
 
 .mk-input,
 .mk-select,
 .mk-chat-input {
   font: inherit;
+  font-size: 13px;
   color: var(--mk-app-fg);
   background: var(--mk-editor-bg);
   border: 1px solid var(--mk-border);
   border-radius: var(--mk-radius-sm);
-  padding: 6px 10px;
+  padding: 6px 11px;
   outline: none;
-  transition: border-color 120ms var(--mk-ease), box-shadow 120ms var(--mk-ease);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.03);
+  transition: border-color 140ms var(--mk-ease), box-shadow 140ms var(--mk-ease);
 }
 .mk-input:focus,
 .mk-select:focus,
 .mk-chat-input:focus {
   border-color: var(--mk-accent);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--mk-accent) 25%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--mk-accent) 22%, transparent);
 }
 .mk-input-num {
   width: 84px;
@@ -224,50 +260,60 @@ body.mk-resizing {
   appearance: none;
   font: inherit;
   font-size: 12px;
+  font-weight: 500;
   border: 1px solid var(--mk-border);
-  background: transparent;
-  color: var(--mk-app-fg);
+  background: var(--mk-editor-bg);
+  color: color-mix(in srgb, var(--mk-app-fg) 80%, transparent);
   border-radius: 999px;
-  padding: 3px 12px;
+  padding: 3px 13px;
   cursor: pointer;
+  box-shadow: var(--mk-shadow-1);
   transition: all 140ms var(--mk-ease);
+}
+.mk-chip:hover {
+  color: var(--mk-app-fg);
+  border-color: color-mix(in srgb, var(--mk-accent) 40%, var(--mk-border));
 }
 .mk-chip-on {
   background: var(--mk-accent);
   border-color: var(--mk-accent);
   color: var(--mk-accent-fg);
+  box-shadow: 0 2px 8px -1px color-mix(in srgb, var(--mk-accent) 45%, transparent);
 }
 
 .mk-badge {
   font-size: 11px;
-  background: color-mix(in srgb, var(--mk-success-fg) 15%, transparent);
+  font-weight: 550;
+  background: color-mix(in srgb, var(--mk-success-fg) 14%, transparent);
   color: var(--mk-success-fg);
+  border: 1px solid color-mix(in srgb, var(--mk-success-fg) 25%, transparent);
   border-radius: 999px;
-  padding: 2px 10px;
+  padding: 2px 9px;
 }
 
-/* 焦点可达性（无障碍对比，阶段5 色彩校准） */
+/* 焦点可达性 */
 :focus-visible {
   outline: 2px solid var(--mk-accent);
-  outline-offset: 1px;
+  outline-offset: 2px;
 }
 
-/* ---------- 动画原语 ---------- */
+/* ---------- 灵动动效 ---------- */
 @keyframes mk-fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 @keyframes mk-pop-in {
-  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  from { opacity: 0; transform: translateY(6px) scale(0.98); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 @keyframes mk-slide-up {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
 @keyframes mk-caret-blink {
-  0%, 45% { opacity: 1; }
-  55%, 100% { opacity: 0; }
+  0%, 40% { opacity: 1; }
+  50%, 90% { opacity: 0.3; }
+  100% { opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -22,5 +22,14 @@
       "@shared/*": ["./src/shared/*"]
     }
   },
-  "include": ["src/renderer/**/*", "src/shared/**/*", "tests/setup.ts", "tests/unit/**/*", "tests/component/**/*", "tests/integration/**/*", "tests/perf/**/*"]
+  "include": [
+    "src/renderer/**/*",
+    "src/shared/**/*",
+    "src/tauri-bridge/**/*",
+    "tests/setup.ts",
+    "tests/unit/**/*",
+    "tests/component/**/*",
+    "tests/integration/**/*",
+    "tests/perf/**/*"
+  ]
 }
