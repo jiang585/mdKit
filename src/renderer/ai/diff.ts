@@ -169,7 +169,7 @@ export function lineOffsets(text: string): number[] {
   for (let i = 0; i < text.length; i++) {
     if (text[i] === '\n') offsets.push(i + 1);
   }
-  offsets.push(text.length + 1); // 哨兵（含虚拟换行）
+  offsets.push(text.length); // 哨兵（文本总长）
   return offsets;
 }
 
@@ -190,7 +190,7 @@ export function buildEditsFromChunks(
     if (chunk.kind !== 'change' || !accepted.has(chunk.index)) continue;
     const startLine = chunk.oldStart;
     const endLine = chunk.oldStart + chunk.oldLines.length; // 不含
-    const from = offsets[startLine] ?? oldText.length;
+    const from = Math.min(offsets[startLine] ?? oldText.length, oldText.length);
     let to: number;
     let insert = chunk.newLines.join('\n');
 
@@ -206,11 +206,11 @@ export function buildEditsFromChunks(
       // 删除/替换至最后一行：吃掉前导换行以免遗留空行（纯删除时）
       to = oldText.length;
       if (insert.length === 0 && from > 0) {
-        edits.push({ from: from - 1, to, insert: '' });
+        edits.push({ from: Math.max(0, from - 1), to, insert: '' });
         continue;
       }
     } else {
-      to = offsets[endLine] ?? oldText.length;
+      to = Math.min(offsets[endLine] ?? oldText.length, oldText.length);
       if (insert.length > 0) insert += '\n';
     }
     edits.push({ from, to, insert });

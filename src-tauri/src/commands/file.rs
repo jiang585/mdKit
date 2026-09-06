@@ -123,7 +123,7 @@ pub async fn file_save_as(
             .set_title("另存为")
             .set_file_name(&default_path)
             .add_filter("Markdown", &MD_EXTENSIONS)
-            .blocking_pick_file()
+            .blocking_save_file()
             .and_then(|fp| fp.into_path().ok())
     })
     .await

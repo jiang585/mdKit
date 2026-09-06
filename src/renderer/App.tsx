@@ -625,12 +625,33 @@ export function App() {
     };
   }, []);
   const applyAiEdits = useCallback((edits: Array<{ from: number; to: number; insert: string }>) => {
-    editorRef.current?.applyEdits(edits, 'ai-apply');
-    toast('success', 'AI 修改已应用（Ctrl+Z 可撤销）');
+    try {
+      if (!editorRef.current) {
+        toast('error', '编辑器未就绪，无法应用修改');
+        return;
+      }
+      editorRef.current.applyEdits(edits, 'ai-apply');
+      toast('success', 'AI 修改已应用（Ctrl+Z 可撤销）');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error('应用 AI 修改失败', err);
+      toast('error', `应用修改失败：${message}`);
+      throw err;
+    }
   }, []);
   const applyInlineReplace = useCallback((from: number, to: number, text: string) => {
-    editorRef.current?.applyEdits([{ from, to, insert: text }], 'ai-apply');
-    toast('success', 'AI 内容已写入（Ctrl+Z 可撤销）');
+    try {
+      if (!editorRef.current) {
+        toast('error', '编辑器未就绪，无法应用修改');
+        return;
+      }
+      editorRef.current.applyEdits([{ from, to, insert: text }], 'ai-apply');
+      toast('success', 'AI 内容已写入（Ctrl+Z 可撤销）');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error('应用行内修改失败', err);
+      toast('error', `应用行内修改失败：${message}`);
+    }
   }, []);
   const openAiSettings = useCallback(() => {
     setSettingsSection('ai');

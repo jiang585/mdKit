@@ -22,6 +22,8 @@ use windows::Win32::System::Com::{CoInitializeEx, CoUninitialize, COINIT_APARTME
 use windows::Win32::System::LibraryLoader::GetModuleHandleW;
 use windows::Win32::UI::WindowsAndMessaging::*;
 
+use crate::logger;
+
 const CLASS_NAME: PCWSTR = w!("mdkit_print_host");
 
 /// 消息泵转发过程（WNDCLASSEXW 需要裸 extern "system" fn 指针）
@@ -113,12 +115,14 @@ unsafe fn pump_and_print(out_path: &Path, temp_dir: &Path, tx: Tx, rx: mpsc::Rec
     let env_handler: ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler =
         EnvCompletedHandler { hwnd, tx: tx.clone(), out_path: out_path.to_path_buf(), temp_dir: temp_dir.to_path_buf() }.into();
 
+    logger::info("PDF 打印: 准备调用 CreateCoreWebView2EnvironmentWithOptions");
     let create_result = CreateCoreWebView2EnvironmentWithOptions(
         PCWSTR::null(),
         &windows::core::HSTRING::from(user_data.as_os_str()),
         None,
         &env_handler,
     );
+    logger::info(&format!("PDF 打印: CreateCoreWebView2EnvironmentWithOptions 返回: {create_result:?}"));
     if let Err(e) = create_result {
         let _ = tx.send(Err(format!("WebView2 环境创建失败：{e}")));
     }
@@ -171,6 +175,7 @@ impl ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler_Impl for EnvComp
         error_code: windows::core::HRESULT,
         environment: windows_core::Ref<'_, ICoreWebView2Environment>,
     ) -> windows_core::Result<()> {
+        logger::info(&format!("PDF 打印: EnvCompletedHandler::Invoke error_code={error_code:?}"));
         if error_code.is_err() {
             let _ = self.tx.send(Err(format!("WebView2 环境创建失败：{error_code}")));
             return Ok(());
@@ -188,7 +193,9 @@ impl ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler_Impl for EnvComp
             }
             .into();
         unsafe {
+            logger::info("PDF 打印: 调用 CreateCoreWebView2Controller");
             if let Err(e) = env.CreateCoreWebView2Controller(self.hwnd, &controller_handler) {
+                logger::error(&format!("PDF 打印: CreateCoreWebView2Controller 失败：{e}"));
                 let _ = self.tx.send(Err(format!("创建打印视图失败：{e}")));
             }
         }
@@ -210,6 +217,7 @@ impl ICoreWebView2CreateCoreWebView2ControllerCompletedHandler_Impl for Controll
         error_code: windows::core::HRESULT,
         controller_ref: windows_core::Ref<'_, ICoreWebView2Controller>,
     ) -> windows_core::Result<()> {
+        logger::info(&format!("PDF 打印: ControllerCompletedHandler::Invoke error_code={error_code:?}"));
         if error_code.is_err() {
             let _ = self.tx.send(Err(format!("创建打印视图失败：{error_code}")));
             return Ok(());
@@ -219,6 +227,15 @@ impl ICoreWebView2CreateCoreWebView2ControllerCompletedHandler_Impl for Controll
             return Ok(());
         };
         unsafe {
+            let bounds = windows::Win32::Foundation::RECT {
+                left: 0,
+                top: 0,
+                right: 1200,
+                bottom: 1600,
+            };
+            let _ = controller.SetBounds(bounds);
+            let _ = controller.SetIsVisible(true);
+
             let Ok(webview) = controller.CoreWebView2() else {
                 let _ = self.tx.send(Err("获取打印视图失败".into()));
                 return Ok(());
@@ -229,22 +246,10 @@ impl ICoreWebView2CreateCoreWebView2ControllerCompletedHandler_Impl for Controll
                 let _ = settings.SetAreDefaultScriptDialogsEnabled(false);
                 let _ = settings.SetAreDevToolsEnabled(false);
             }
-            // 虚拟主机映射临时目录，规避 file:// 导航限制
-            let Ok(webview3) = webview.cast::<ICoreWebView2_3>() else {
-                let _ = self.tx.send(Err("WebView2 版本过旧（缺 ICoreWebView2_3）".into()));
-                return Ok(());
-            };
-            if let Err(e) = webview3.SetVirtualHostNameToFolderMapping(
-                &windows::core::HSTRING::from("mdkit-print"),
-                &windows::core::HSTRING::from(self.temp_dir.as_os_str()),
-                COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND_ALLOW,
-            ) {
-                let _ = self.tx.send(Err(format!("虚拟主机映射失败：{e}")));
-                return Ok(());
-            }
 
             let nav_handler: ICoreWebView2NavigationCompletedEventHandler = NavigationCompletedHandler {
                 environment: self.environment.clone(),
+                controller: controller.clone(),
                 webview: webview.clone(),
                 tx: self.tx.clone(),
                 out_path: self.out_path.clone(),
@@ -255,7 +260,12 @@ impl ICoreWebView2CreateCoreWebView2ControllerCompletedHandler_Impl for Controll
                 let _ = self.tx.send(Err(format!("注册导航回调失败：{e}")));
                 return Ok(());
             }
-            if let Err(e) = webview.Navigate(&windows::core::HSTRING::from("http://mdkit-print/export.html")) {
+
+            let html_str = std::fs::read_to_string(self.temp_dir.join("export.html"))
+                .unwrap_or_else(|_| "<html><body><h1>导出失败</h1></body></html>".into());
+            logger::info("PDF 打印: 调用 NavigateToString");
+            if let Err(e) = webview.NavigateToString(&windows::core::HSTRING::from(html_str)) {
+                logger::error(&format!("PDF 打印: NavigateToString 失败: {e}"));
                 let _ = self.tx.send(Err(format!("加载导出内容失败：{e}")));
             }
         }
@@ -266,6 +276,7 @@ impl ICoreWebView2CreateCoreWebView2ControllerCompletedHandler_Impl for Controll
 #[windows::core::implement(ICoreWebView2NavigationCompletedEventHandler)]
 struct NavigationCompletedHandler {
     environment: ICoreWebView2Environment,
+    controller: ICoreWebView2Controller,
     webview: ICoreWebView2,
     tx: Tx,
     out_path: std::path::PathBuf,
@@ -281,6 +292,7 @@ impl ICoreWebView2NavigationCompletedEventHandler_Impl for NavigationCompletedHa
             let mut ok = windows::Win32::Foundation::BOOL::default();
             a.IsSuccess(&mut ok).is_ok() && ok.as_bool()
         });
+        logger::info(&format!("PDF 打印: NavigationCompletedHandler::Invoke success={success}"));
         if !success {
             let _ = self.tx.send(Err("加载导出内容失败".into()));
             return Ok(());
@@ -309,12 +321,18 @@ impl ICoreWebView2NavigationCompletedEventHandler_Impl for NavigationCompletedHa
                 return Ok(());
             };
             let pdf_handler: ICoreWebView2PrintToPdfCompletedHandler =
-                PrintToPdfCompletedHandler { tx: self.tx.clone() }.into();
+                PrintToPdfCompletedHandler {
+                    _controller: self.controller.clone(),
+                    tx: self.tx.clone(),
+                }
+                .into();
+            logger::info(&format!("PDF 打印: 开始调用 PrintToPdf, 目标路径={:?}", self.out_path));
             if let Err(e) = webview7.PrintToPdf(
                 &windows::core::HSTRING::from(self.out_path.as_os_str()),
                 &print_settings,
                 &pdf_handler,
             ) {
+                logger::error(&format!("PDF 打印: PrintToPdf 调用返回错误: {e}"));
                 let _ = self.tx.send(Err(format!("发起 PDF 打印失败：{e}")));
             }
         }
@@ -324,6 +342,7 @@ impl ICoreWebView2NavigationCompletedEventHandler_Impl for NavigationCompletedHa
 
 #[windows::core::implement(ICoreWebView2PrintToPdfCompletedHandler)]
 struct PrintToPdfCompletedHandler {
+    _controller: ICoreWebView2Controller,
     tx: Tx,
 }
 
@@ -333,6 +352,7 @@ impl ICoreWebView2PrintToPdfCompletedHandler_Impl for PrintToPdfCompletedHandler
         error_code: windows::core::HRESULT,
         result: windows::Win32::Foundation::BOOL,
     ) -> windows_core::Result<()> {
+        logger::info(&format!("PDF 打印: PrintToPdfCompletedHandler::Invoke error_code={error_code:?}, result={}", result.as_bool()));
         if error_code.is_err() {
             let _ = self.tx.send(Err(format!("PDF 打印失败：{error_code}")));
             return Ok(());

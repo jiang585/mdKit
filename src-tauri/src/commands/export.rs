@@ -35,7 +35,7 @@ fn blocking_pick_save(
         .set_title(title)
         .set_file_name(default_name)
         .add_filter(filter_name, &[ext])
-        .blocking_pick_file()
+        .blocking_save_file()
         .and_then(|fp| fp.into_path().ok())
 }
 

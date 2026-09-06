@@ -7,7 +7,7 @@ import { Modal } from '@renderer/components/Modal';
 import { useAiStore } from './ai-store';
 import { DiffView } from './DiffView';
 import { MarkdownMessage } from './MarkdownMessage';
-import { buildEditsFromChunks } from './diff';
+import { buildEditsFromChunks, computeLineDiff } from './diff';
 import type { DocContext } from './prompt-context';
 
 export interface ChatPanelProps {
@@ -57,22 +57,46 @@ export const ChatPanel = memo(function ChatPanel({
     const currentDraft = store.getState().draft;
     if (!currentDraft) return;
     if (currentDraft.mode === 'doc') {
+      const docContext = getDocContext();
+      const currentDocText = docContext?.docText;
+      let textForEdits = currentDraft.originalText;
+      let chunksForEdits = currentDraft.chunks;
+      let acceptedForEdits = currentDraft.accepted;
+
+      // 若用户在 AI 生成期间修改了文档，基于当前最新文本重算 Diff，防止位置偏移破坏内容
+      if (currentDocText !== undefined && currentDocText !== currentDraft.originalText) {
+        chunksForEdits = computeLineDiff(currentDocText, currentDraft.proposedText);
+        textForEdits = currentDocText;
+        acceptedForEdits = new Set(
+          chunksForEdits.filter((c) => c.kind === 'change').map((c) => c.index),
+        );
+      }
+
       const edits = buildEditsFromChunks(
-        currentDraft.originalText,
-        currentDraft.chunks,
-        currentDraft.accepted,
+        textForEdits,
+        chunksForEdits,
+        acceptedForEdits,
       );
-      onApplyEdits(edits);
+      try {
+        onApplyEdits(edits);
+      } catch {
+        return;
+      }
     }
     store.getState().discardDraft();
-  }, [onApplyEdits, store]);
+  }, [getDocContext, onApplyEdits, store]);
 
   const showDocDraft = draft?.mode === 'doc' && draft.chunks.length > 0;
 
   return (
     <aside className="mk-chat" data-testid="ai-panel">
       <header className="mk-chat-header">
-        <span className="mk-chat-title">AI 助手</span>
+        <span className="mk-chat-title" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path d="M8 1.5l1.5 4.5L14 7.5l-4.5 1.5L8 13.5l-1.5-4.5L2 7.5l4.5-1.5L8 1.5z" strokeLinejoin="round" fill="currentColor" fillOpacity="0.15" />
+          </svg>
+          AI 助手
+        </span>
         <select
           className="mk-select"
           aria-label="选择 AI 后端"
@@ -87,10 +111,16 @@ export const ChatPanel = memo(function ChatPanel({
           ))}
         </select>
         <button type="button" className="mk-icon-btn" title="AI 设置" onClick={onOpenSettings}>
-          ⚙
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6">
+            <circle cx="8" cy="8" r="3" />
+            <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.5 1.5M11.5 11.5L13 13M3 13l1.5-1.5M11.5 4.5L13 3" strokeLinecap="round" />
+          </svg>
         </button>
         <button type="button" className="mk-icon-btn" aria-label="关闭面板" onClick={onClose}>
-          ×
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <line x1="2" y1="2" x2="10" y2="10" />
+            <line x1="10" y1="2" x2="2" y2="10" />
+          </svg>
         </button>
       </header>
 
@@ -232,19 +262,20 @@ export const ChatPanel = memo(function ChatPanel({
           </>
         }
       >
-        {pendingPreview && (
-          <div className="mk-preview-request">
-            {pendingPreview.redactedHits > 0 && (
-              <p className="mk-preview-request-redact">已脱敏 {pendingPreview.redactedHits} 处敏感内容</p>
-            )}
-            {pendingPreview.payload.map((m, i) => (
-              <div key={i} className="mk-preview-request-msg">
-                <div className="mk-preview-request-role">{m.role}</div>
-                <pre className="mk-preview-request-content">{m.content}</pre>
-              </div>
-            ))}
-          </div>
-        )}
+        <div className="mk-preview-request">
+          <p className="mk-settings-hint">以下是即将发往 AI 服务的完整 Prompt。请核对是否包含敏感信息。</p>
+          {(pendingPreview?.payload ?? []).map((m, i) => (
+            <div key={i} className="mk-preview-request-msg">
+              <div className="mk-preview-request-role">{m.role}</div>
+              <pre className="mk-preview-request-content">{m.content}</pre>
+            </div>
+          ))}
+          {pendingPreview?.redactedHits ? (
+            <div className="mk-preview-request-redact">
+              已自动脱敏 {pendingPreview.redactedHits} 处敏感凭据（如 API Key）
+            </div>
+          ) : null}
+        </div>
       </Modal>
     </aside>
   );

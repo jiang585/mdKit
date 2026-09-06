@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { EditorState } from '@codemirror/state';
 import { applyChunks, buildEditsFromChunks, computeLineDiff } from '@renderer/ai/diff';
 
 /** 把编辑集应用到原文（模拟编辑器单事务） */
@@ -70,6 +71,11 @@ describe('接受集 → 单事务编辑集（验收 7/8）', () => {
     ['尾部带换行', 'a\nb\n', 'a\nc\n'],
     ['空文起步', '', 'hello\nworld'],
     ['清空文档', 'x\ny', ''],
+    ['尾部带换行追加', 'a\nb\n', 'a\nb\nc\n'],
+    ['真实Markdown尾部追加', '# 标题\n\n正文第一段', '# 标题\n\n正文第一段\n\n## 新章节\n这是AI添加的内容'],
+    ['多处同时变更首尾中', '1\n2\n3\n4\n5', '0\n1\n2-mod\n4\n5\n6'],
+    ['单行文档替换', 'hello', 'world'],
+    ['单行文档追加', 'hello', 'hello world'],
   ];
 
   for (const [name, oldText, newText] of cases) {
@@ -77,6 +83,11 @@ describe('接受集 → 单事务编辑集（验收 7/8）', () => {
       const chunks = computeLineDiff(oldText, newText);
       const edits = buildEditsFromChunks(oldText, chunks, acceptAll(chunks));
       expect(applyEdits(oldText, edits)).toBe(newText);
+
+      // 验证 CodeMirror 原生 dispatch 事务不报错且内容一致
+      const state = EditorState.create({ doc: oldText });
+      const tr = state.update({ changes: edits });
+      expect(tr.newDoc.toString()).toBe(newText);
     });
   }
 
@@ -88,15 +99,21 @@ describe('接受集 → 单事务编辑集（验收 7/8）', () => {
     const pick = new Set([changes[1].index]);
     const edits = buildEditsFromChunks(oldText, chunks, pick);
     expect(applyEdits(oldText, edits)).toBe(applyChunks(chunks, pick));
+    const state = EditorState.create({ doc: oldText });
+    const tr = state.update({ changes: edits });
+    expect(tr.newDoc.toString()).toBe(applyChunks(chunks, pick));
   });
 
-  it('编辑集按 from 升序且互不重叠（可一次事务应用）', () => {
-    const oldText = 'a\nb\nc\nd\ne';
-    const newText = 'A\nb\nC\nd\nE';
+  it('多块变更且尾行删除时：edits 互不重叠且可被 CodeMirror 应用', () => {
+    const oldText = 'line0\nline1\nline2';
+    const newText = 'new0\nline1';
     const chunks = computeLineDiff(oldText, newText);
     const edits = buildEditsFromChunks(oldText, chunks, acceptAll(chunks));
     for (let i = 1; i < edits.length; i++) {
       expect(edits[i].from).toBeGreaterThanOrEqual(edits[i - 1].to);
     }
+    const state = EditorState.create({ doc: oldText });
+    const tr = state.update({ changes: edits });
+    expect(tr.newDoc.toString()).toBe(newText);
   });
 });
