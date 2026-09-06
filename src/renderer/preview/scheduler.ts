@@ -3,7 +3,6 @@
  * 文本快照惰性拉取（回调按需读取，不随每次按键复制全文）。
  */
 import { debounce, type Debounced } from '@renderer/shared/debounce';
-import { bridge } from '@renderer/shared/bridge';
 import { RENDER_DEBOUNCE_MS } from '@shared/constants';
 import type { RenderRequest, RenderResult } from '@renderer/shared/render-types';
 

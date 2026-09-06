@@ -36,9 +36,10 @@ for (const name of readdirSync(nsisDir)) {
 }
 
 /* ---------- 便携版 zip（exe + 随附 DLL） ---------- */
-const exeName = readdirSync(targetDir).find((f) => f.endsWith('.exe') && !f.includes('setup'));
-if (!exeName) {
-  console.error('未找到主程序 exe');
+// 主程序名与 tauri.conf.json 的 mainBinaryName 一致（target 目录可能有其他 bin，不能靠 find）
+const exeName = 'md-toolbox.exe';
+if (!existsSync(join(targetDir, exeName))) {
+  console.error(`未找到主程序 ${exeName}，请先 npm run build`);
   process.exit(1);
 }
 const portableFiles = [join(targetDir, exeName)];

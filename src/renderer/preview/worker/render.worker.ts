@@ -17,7 +17,7 @@ self.onmessage = (event: MessageEvent<InMessage>) => {
   if (msg.type !== 'render') return;
   renderMarkdown(msg.req)
     .then((res) => {
-      post({ type: 'result', res });
+      (self as unknown as Worker).postMessage({ type: 'result', res });
     })
     .catch((err: unknown) => {
       // 渲染失败必须可见（否则预览区会静默空白）：回传错误让主线程降级并上报

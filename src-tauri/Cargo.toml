@@ -28,6 +28,7 @@ keyring = "3"
 dirs = "5"
 open = "5"
 base64 = "0.22"
+aes-gcm = "0.10"
 regex = "1"
 
 [target."cfg(windows)".dependencies]

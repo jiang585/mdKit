@@ -3,7 +3,6 @@
 //! - 密钥存 Windows 凭据管理器（keyring），绝不写日志/普通配置；
 //! - Electron 版 safeStorage(DPAPI) 时代的 secrets.json 会被一次性迁移进 keyring。
 
-use base64::Engine;
 use serde::Deserialize;
 use serde_json::{json, Value};
 use tauri::{AppHandle, Emitter, Manager, State};
@@ -68,14 +67,14 @@ fn get_key(profile_id: &str) -> Option<String> {
     migrate_legacy_key(profile_id)
 }
 
-/// Electron safeStorage(DPAPI) 旧密钥迁移：解密 secrets.json 中的 base64 blob → 存入 keyring。
+/// Electron safeStorage 旧密钥迁移：解密 secrets.json 中的 base64 blob → 存入 keyring。
 fn migrate_legacy_key(profile_id: &str) -> Option<String> {
     let file = paths::legacy_secrets_file();
     let raw = std::fs::read_to_string(&file).ok()?;
     let secrets: Value = serde_json::from_str(&raw).ok()?;
     let enc = secrets.get(profile_id)?.as_str()?;
-    let Some(plain) = dpapi_unprotect(enc) else {
-        logger::error("旧密钥 DPAPI 解密失败");
+    let Some(plain) = crate::legacy_crypto::decrypt_safe_storage_b64(enc) else {
+        logger::error("旧密钥解密失败（v10/DPAPI），请在设置中重新输入密钥");
         return None;
     };
     if let Some(entry) = keyring_entry(profile_id) {
@@ -96,33 +95,6 @@ fn migrate_legacy_key(profile_id: &str) -> Option<String> {
     None
 }
 
-#[cfg(windows)]
-fn dpapi_unprotect(base64_blob: &str) -> Option<String> {
-    use windows::Win32::Foundation::LocalFree;
-    use windows::Win32::Security::Cryptography::{CryptUnprotectData, CRYPT_INTEGER_BLOB};
-
-    let blob = base64::engine::general_purpose::STANDARD.decode(base64_blob).ok()?;
-    let mut input = CRYPT_INTEGER_BLOB {
-        cbData: blob.len() as u32,
-        pbData: blob.as_ptr() as *mut u8,
-    };
-    let mut output = CRYPT_INTEGER_BLOB::default();
-    let result = unsafe { CryptUnprotectData(&input, None, None, None, None, 0, &mut output) };
-    if result.is_err() || output.pbData.is_null() {
-        return None;
-    }
-    let bytes = unsafe { std::slice::from_raw_parts(output.pbData, output.cbData as usize) };
-    let text = String::from_utf8_lossy(bytes).into_owned();
-    unsafe {
-        let _ = LocalFree(Some(windows::Win32::Foundation::HLOCAL(output.pbData.cast())));
-    }
-    Some(text)
-}
-
-#[cfg(not(windows))]
-fn dpapi_unprotect(_base64_blob: &str) -> Option<String> {
-    None
-}
 
 /* ---------- 密钥命令 ---------- */
 

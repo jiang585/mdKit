@@ -6,6 +6,7 @@ mod commands;
 mod config;
 mod constants;
 mod fsx;
+pub mod legacy_crypto;
 mod logger;
 mod menu;
 mod paths;
