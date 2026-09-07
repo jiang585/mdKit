@@ -14,15 +14,18 @@ import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
 import { bracketMatching, indentOnInput } from '@codemirror/language';
 import { languages } from '@codemirror/language-data';
 import { highlightSelectionMatches, search, searchKeymap } from '@codemirror/search';
-import { Compartment, type EditorState, type Extension } from '@codemirror/state';
+import { Compartment, type EditorState, type Extension, type Range } from '@codemirror/state';
 import {
+  Decoration,
   drawSelection,
   dropCursor,
   EditorView,
-  highlightActiveLine,
   highlightActiveLineGutter,
   keymap,
   lineNumbers,
+  ViewPlugin,
+  type DecorationSet,
+  type ViewUpdate,
 } from '@codemirror/view';
 import { editorBaseTheme, editorHighlightStyle } from './editor-theme';
 import { DEFAULT_EDITOR_KEYS, editorCommands } from './markdown-commands';
@@ -72,10 +75,46 @@ export interface CmSetupOptions {
   onUpdate: (update: { docChanged: boolean; selectionChanged: boolean; state: EditorState }) => void;
 }
 
+/**
+ * 活动行高亮（自定义）：
+ * CodeMirror 内置 highlightActiveLine 在「有选区」时也会给选区头部所在行（r.head）加一个
+ * 整行 `cm-activeLine` 装饰——导致多行选区的最后一行背景铺满整行，无法精确到单个字符。
+ * 这里改为：仅当该 range 为空选区（即单个光标、未划选文本）时才加整行高亮，
+ * 让多行选区始终保持逐字符精确的选区背景。
+ */
+const mkActiveLineDeco = Decoration.line({ class: 'cm-activeLine' });
+function mkActiveLine(): Extension {
+  return ViewPlugin.fromClass(
+    class {
+      decorations: DecorationSet;
+      constructor(view: EditorView) {
+        this.decorations = this.compute(view);
+      }
+      update(update: ViewUpdate) {
+        if (update.docChanged || update.selectionSet) this.decorations = this.compute(update.view);
+      }
+      compute(view: EditorView): DecorationSet {
+        let lastLineStart = -1;
+        const deco: Range<Decoration>[] = [];
+        for (const r of view.state.selection.ranges) {
+          if (!r.empty) continue; // 有选区（划选了文本）则不染整行，保留逐字符选区
+          const line = view.lineBlockAt(r.head);
+          if (line.from > lastLineStart) {
+            deco.push(mkActiveLineDeco.range(line.from));
+            lastLineStart = line.from;
+          }
+        }
+        return Decoration.set(deco);
+      }
+    },
+    { decorations: (v) => v.decorations },
+  );
+}
+
 export function buildExtensions(opts: CmSetupOptions): Extension[] {
   return [
     compartments.lineNumbers.of(opts.lineNumbers ? [lineNumbers(), highlightActiveLineGutter()] : []),
-    highlightActiveLine(),
+    mkActiveLine(),
     history(),
     drawSelection(),
     dropCursor(),
