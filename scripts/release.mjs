@@ -34,8 +34,10 @@ if (existsSync(nsisDir)) {
   for (const name of readdirSync(nsisDir)) {
     if (name.endsWith('.exe')) {
       const dest = `MD工具箱-Setup-${version}.exe`;
+      const destEn = `MD-Toolbox-Setup-${version}.exe`;
       copyFileSync(join(nsisDir, name), join(outDir, dest));
-      console.log(`安装版：${dest} (${(statSync(join(nsisDir, name)).size / 1024 / 1024).toFixed(1)} MB)`);
+      copyFileSync(join(nsisDir, name), join(outDir, destEn));
+      console.log(`安装版：${dest} / ${destEn} (${(statSync(join(nsisDir, name)).size / 1024 / 1024).toFixed(1)} MB)`);
     }
   }
 } else {
@@ -49,8 +51,11 @@ for (const dll of ['WebView2Loader.dll']) {
   if (existsSync(p)) portableFiles.push(p);
 }
 const zipName = `MD工具箱-Portable-${version}.zip`;
+const zipNameEn = `MD-Toolbox-Portable-${version}.zip`;
 const zipPath = join(outDir, zipName);
+const zipPathEn = join(outDir, zipNameEn);
 if (existsSync(zipPath)) await rm(zipPath);
+if (existsSync(zipPathEn)) await rm(zipPathEn);
 const stageDir = await mkdtemp(join(tmpdir(), 'mdkit-portable-'));
 for (const f of portableFiles) {
   copyFileSync(f, join(stageDir, f === portableFiles[0] ? 'MD工具箱.exe' : f.split(/[\\/]/).pop()));
@@ -64,13 +69,17 @@ if (result.status !== 0) {
   console.error('便携版打包失败');
   process.exit(1);
 }
-console.log(`便携版：${zipName} (${(statSync(zipPath).size / 1024 / 1024).toFixed(1)} MB)`);
+copyFileSync(zipPath, zipPathEn);
+console.log(`便携版：${zipName} / ${zipNameEn} (${(statSync(zipPath).size / 1024 / 1024).toFixed(1)} MB)`);
 
 /* ---------- 3. 裸 exe 版（单文件可执行程序） ---------- */
 const bareExeName = `MD工具箱-${version}.exe`;
+const bareExeNameEn = `MD-Toolbox-${version}.exe`;
 const bareExePath = join(outDir, bareExeName);
+const bareExePathEn = join(outDir, bareExeNameEn);
 copyFileSync(join(targetDir, exeName), bareExePath);
-console.log(`裸exe版：${bareExeName} (${(statSync(bareExePath).size / 1024 / 1024).toFixed(1)} MB)`);
+copyFileSync(join(targetDir, exeName), bareExePathEn);
+console.log(`裸exe版：${bareExeName} / ${bareExeNameEn} (${(statSync(bareExePath).size / 1024 / 1024).toFixed(1)} MB)`);
 
 // 同时放一个不带版本号的别名方便用户快捷双击
 const aliasBareExe = join(outDir, 'MD工具箱.exe');
