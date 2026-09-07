@@ -20,6 +20,7 @@ function isTauriRuntime(): boolean {
 /* ---------- IPC 契约通道 → Tauri 命令名 ---------- */
 
 const CMD = {
+  fileGetPendingOpen: 'file_get_pending_open',
   fileOpenDialog: 'file_open_dialog',
   fileOpenDropped: 'file_open_dropped',
   fileRead: 'file_read',
@@ -103,6 +104,7 @@ function onDropPaths(cb: (paths: string[]) => void): Unsubscribe {
 function createTauriBridge(): Bridge {
   return {
     file: {
+      getPendingOpen: () => invoke(CMD.fileGetPendingOpen),
       openDialog: () => invoke(CMD.fileOpenDialog),
       pathForFile: (file: File): string => {
         // Tauri 的拖拽路径经原生事件提供（onDropPaths），HTML5 drop 事件在 Tauri 下不触发；

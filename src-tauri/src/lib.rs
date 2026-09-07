@@ -22,17 +22,25 @@ use crate::state::{AiState, AppState};
 fn md_path_from_argv(argv: &[String]) -> Option<String> {
     argv.iter()
         .skip(1)
-        .find(|a| {
-            let lower = a.to_lowercase();
-            (lower.ends_with(".md") || lower.ends_with(".markdown")) && !a.starts_with('-')
+        .find_map(|a| {
+            let clean = a.trim().trim_matches('"').trim_matches('\'');
+            if clean.is_empty() || clean.starts_with('-') {
+                return None;
+            }
+            let lower = clean.to_lowercase();
+            if lower.ends_with(".md") || lower.ends_with(".markdown") {
+                Some(clean.to_string())
+            } else {
+                None
+            }
         })
-        .cloned()
 }
 
 /// 命令行/二次实例打开：授权并读取后推送 app:open-path
 fn open_and_push(app: &AppHandle, path: &str) {
     let state: State<AppState> = app.state();
     state.grant_path(path);
+    state.set_pending_open(path.to_string());
     match fsx::read_text_lossy(std::path::Path::new(path)) {
         Ok(content) => {
             let name = std::path::Path::new(path)
@@ -83,16 +91,10 @@ pub fn run() {
                     let _ = app.show();
                 }
             }
-            // 首次启动带文件参数（双击 .md / 拖到 exe 图标）
-            if let Some(app) = webview.app_handle().try_state::<PendingOpen>() {
-                if let Some(path) = app.0.lock().expect("pending_open").take() {
-                    let handle = webview.app_handle().clone();
-                    let _ = tauri::async_runtime::spawn(async move { open_and_push(&handle, &path); });
-                }
-            }
         })
         .invoke_handler(tauri::generate_handler![
             // 文件
+            commands::file::file_get_pending_open,
             commands::file::file_open_dialog,
             commands::file::file_open_dropped,
             commands::file::file_read,
@@ -130,7 +132,9 @@ pub fn run() {
             // 记录首启命令行 .md 参数
             let argv: Vec<String> = std::env::args().collect();
             if let Some(path) = md_path_from_argv(&argv) {
-                app.manage(PendingOpen(std::sync::Mutex::new(Some(path))));
+                let state: State<AppState> = app.state();
+                state.grant_path(&path);
+                state.set_pending_open(path);
             }
             logger::info("应用启动完成");
             Ok(())
@@ -139,6 +143,3 @@ pub fn run() {
         .run(tauri::generate_context!())
         .expect("MD工具箱启动失败");
 }
-
-/// 首启待打开的 .md 路径（页面加载完成后消费）
-struct PendingOpen(std::sync::Mutex<Option<String>>);

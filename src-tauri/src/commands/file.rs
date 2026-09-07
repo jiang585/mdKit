@@ -57,6 +57,27 @@ fn blocking_pick_markdown(app: &AppHandle, title: &str) -> Option<PathBuf> {
 }
 
 #[tauri::command]
+pub fn file_get_pending_open(state: State<'_, AppState>) -> Result<Option<OpenedFile>, String> {
+    let Some(path) = state.take_pending_open() else {
+        return Ok(None);
+    };
+    state.grant_path(&path);
+    match crate::fsx::read_text_lossy(Path::new(&path)) {
+        Ok(content) => {
+            let name = file_name(&path);
+            config::touch_recent_file(&state, &path, &name);
+            allow_doc_dir_of(&state, &path);
+            logger::info(&format!("消费启动待打开文档：{name}"));
+            Ok(Some(OpenedFile { path, name, content }))
+        }
+        Err(err) => {
+            logger::error(&format!("读取启动待打开文档失败：{err}"));
+            Ok(None)
+        }
+    }
+}
+
+#[tauri::command]
 pub async fn file_open_dialog(
     app: AppHandle,
     state: State<'_, AppState>,

@@ -14,9 +14,19 @@ pub struct AppState {
     pub allowed_dirs: Mutex<HashSet<String>>,
     /// 配置缓存（normalized 全量 JSON）
     pub config_cache: Mutex<Option<Value>>,
+    /// 启动或关联唤醒时待消费的 .md 路径
+    pub pending_open: Mutex<Option<String>>,
 }
 
 impl AppState {
+    pub fn set_pending_open(&self, path: String) {
+        *self.pending_open.lock().expect("pending_open") = Some(path);
+    }
+
+    pub fn take_pending_open(&self) -> Option<String> {
+        self.pending_open.lock().expect("pending_open").take()
+    }
+
     pub fn grant_path(&self, path: &str) {
         self.granted_paths.lock().expect("granted_paths").insert(path.to_string());
     }

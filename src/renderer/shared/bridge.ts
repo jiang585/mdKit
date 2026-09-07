@@ -11,6 +11,7 @@ type Unsubscribe = () => void;
 
 export interface Bridge {
   file: {
+    getPendingOpen(): Promise<OpenedFile | null>;
     openDialog(): Promise<OpenedFile | null>;
     pathForFile(file: File): string;
     openDropped(path: string): Promise<OpenedFile>;
@@ -75,6 +76,7 @@ function createBrowserMock(): Bridge {
   const noopUnsub = (): void => undefined;
   return {
     file: {
+      getPendingOpen: async () => null,
       openDialog: async () => null,
       pathForFile: (file) => `/mock/${file.name}`,
       openDropped: async (path) => {

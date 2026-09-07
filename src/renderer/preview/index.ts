@@ -15,3 +15,4 @@ export { PreviewPanel } from './PreviewPanel';
 export type { PreviewControls, PreviewPanelProps } from './PreviewPanel';
 export { renderMarkdown as renderMarkdownOnce } from './worker/pipeline';
 export { findAnchorLineForCursor } from './cursor-sync';
+export { buildSanitizeSchema } from './worker/sanitize-schema';

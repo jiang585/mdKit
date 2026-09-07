@@ -111,6 +111,17 @@ export function App() {
   const handleEditorReady = useCallback(
     (handle: EditorHandle) => {
       editorRef.current = handle;
+      const currentTabId = useDocumentStore.getState().activeTabId;
+      if (currentTabId) {
+        const savedState = tabStateStore.takeEditorState(currentTabId);
+        if (savedState) {
+          handle.restoreState(savedState);
+        } else {
+          const initial = tabInitialContent.current.get(currentTabId) ?? tabStateStore.textOf(currentTabId) ?? '';
+          tabInitialContent.current.delete(currentTabId);
+          handle.setText(initial, 'file-load');
+        }
+      }
       ensureScheduler().flush();
       updateWords();
     },
@@ -155,11 +166,23 @@ export function App() {
   );
 
   /* ---------- 文件动作 ---------- */
-  const openFileAsTab = useCallback((file: OpenedFile) => {
-    const { tabId, existed } = useDocumentStore.getState().openAsTab(file.path, file.name);
-    if (!existed) tabInitialContent.current.set(tabId, file.content);
-    void refreshRecent();
-  }, []);
+  const openFileAsTab = useCallback(
+    (file: OpenedFile) => {
+      const { tabId, existed } = useDocumentStore.getState().openAsTab(file.path, file.name);
+      if (!existed) {
+        tabInitialContent.current.set(tabId, file.content);
+        const handle = editorRef.current;
+        if (handle && useDocumentStore.getState().activeTabId === tabId) {
+          tabInitialContent.current.delete(tabId);
+          handle.setText(file.content, 'file-load');
+          ensureScheduler().flush();
+          updateWords();
+        }
+      }
+      void refreshRecent();
+    },
+    [ensureScheduler, updateWords],
+  );
 
   const newTab = useCallback((content = '', pathInfo?: { path: string | null; name?: string }) => {
     const tabId = useDocumentStore.getState().newTab(pathInfo ?? { path: null });
@@ -405,6 +428,16 @@ export function App() {
         if (applied.fellBack) toast('warning', '持久化主题不可用，已回退默认浅色主题');
 
         await refreshRecent();
+
+        // 检查首启文件关联（双击 .md / 拖到 exe 图标 / 命令行直接打开）
+        try {
+          const pendingFile = await bridge().file.getPendingOpen();
+          if (!disposed && pendingFile) {
+            openFileAsTab(pendingFile);
+          }
+        } catch {
+          /* 忽略首启拉取错误 */
+        }
 
         // 崩溃恢复提示（可用性 §3.3）
         const drafts = await bridge().drafts.list();

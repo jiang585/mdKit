@@ -12,7 +12,7 @@ import rehypeSanitize from 'rehype-sanitize';
 import rehypeKatex from 'rehype-katex';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeStringify from 'rehype-stringify';
-import { buildSanitizeSchema } from '@renderer/preview/worker/sanitize-schema';
+import { buildSanitizeSchema } from '@renderer/preview/index';
 
 let processor: Processor | null = null;
 const htmlCache = new Map<string, string>();
