@@ -111,17 +111,6 @@ export function App() {
   const handleEditorReady = useCallback(
     (handle: EditorHandle) => {
       editorRef.current = handle;
-      const currentTabId = useDocumentStore.getState().activeTabId;
-      if (currentTabId) {
-        const savedState = tabStateStore.takeEditorState(currentTabId);
-        if (savedState) {
-          handle.restoreState(savedState);
-        } else {
-          const initial = tabInitialContent.current.get(currentTabId) ?? tabStateStore.textOf(currentTabId) ?? '';
-          tabInitialContent.current.delete(currentTabId);
-          handle.setText(initial, 'file-load');
-        }
-      }
       ensureScheduler().flush();
       updateWords();
     },
@@ -170,18 +159,12 @@ export function App() {
     (file: OpenedFile) => {
       const { tabId, existed } = useDocumentStore.getState().openAsTab(file.path, file.name);
       if (!existed) {
+        // 只登记初始内容，加载统一由「标签切换 effect」消费（单一写入点，避免竞态清空）
         tabInitialContent.current.set(tabId, file.content);
-        const handle = editorRef.current;
-        if (handle && useDocumentStore.getState().activeTabId === tabId) {
-          tabInitialContent.current.delete(tabId);
-          handle.setText(file.content, 'file-load');
-          ensureScheduler().flush();
-          updateWords();
-        }
       }
       void refreshRecent();
     },
-    [ensureScheduler, updateWords],
+    [],
   );
 
   const newTab = useCallback((content = '', pathInfo?: { path: string | null; name?: string }) => {
