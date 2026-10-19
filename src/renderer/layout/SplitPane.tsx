@@ -43,17 +43,21 @@ export function SplitPane({ mode, ratio, onRatioChange, left, right }: SplitPane
     document.body.classList.remove('mk-resizing');
   }, []);
 
+  // 编辑器在纯预览模式下只隐藏不卸载：卸载会销毁 CodeMirror 实例，
+  // 切回分屏时新实例为空（文本/撤销栈/光标全部丢失）
   const showLeft = mode !== 'preview';
   const showRight = mode !== 'editor';
   const leftBasis = mode === 'split' ? `${(ratio * 100).toFixed(2)}%` : '100%';
 
   return (
     <div ref={containerRef} className={`mk-split mk-split-${mode}`} data-testid="split-pane">
-      {showLeft && (
-        <div className="mk-split-left" style={mode === 'split' ? { flexBasis: leftBasis } : undefined}>
-          {left}
-        </div>
-      )}
+      <div
+        className="mk-split-left"
+        style={showLeft ? (mode === 'split' ? { flexBasis: leftBasis } : undefined) : { display: 'none' }}
+        aria-hidden={showLeft ? undefined : true}
+      >
+        {left}
+      </div>
       {mode === 'split' && (
         <div
           className="mk-split-divider"

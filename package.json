@@ -1,7 +1,7 @@
 {
   "name": "md-toolbox",
   "productName": "MD工具箱",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "轻量、高性能的 Markdown 编辑与预览工具箱（Tauri 2 + React + CodeMirror 6 + unified）",
   "type": "module",
   "author": "jiuji",

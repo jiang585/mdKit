@@ -1,6 +1,6 @@
 [package]
 name = "md-toolbox"
-version = "1.0.1"
+version = "1.0.2"
 description = "轻量、高性能的 Markdown 编辑与预览工具箱"
 authors = ["jiuji"]
 license = "MIT"
