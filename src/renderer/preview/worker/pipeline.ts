@@ -1,6 +1,7 @@
 /**
  * Markdown 渲染管线（决策输入 §7）：
- * remark-parse → remark-gfm → remark-math → remark-rehype
+ * remark-parse → remark-gfm → remark-math → remark-rehype（保留原始 HTML）
+ *   → rehype-raw（内嵌 HTML 解析为真实节点：表格/span 样式/加粗等）
  *   → rehype-sanitize（先消毒；KaTeX/高亮所需结构显式放行）
  *   → 后处理插件（锚点/TOC/图片改写 —— 受信本地产物）
  *   → rehype-katex（失败保留原文并计诊断，不中断整页）
@@ -13,6 +14,7 @@ import remarkParse from 'remark-parse';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import remarkRehype from 'remark-rehype';
+import rehypeRaw from 'rehype-raw';
 import rehypeSanitize from 'rehype-sanitize';
 import rehypeKatex from 'rehype-katex';
 import rehypeHighlight from 'rehype-highlight';
@@ -29,11 +31,13 @@ function buildProcessor(docPath: string | null, output: PostProcessOutput): Proc
     .use(remarkGfm, { singleTilde: false })
     .use(remarkMath)
     .use(remarkRehype, {
-      allowDangerousHtml: false,
+      // 原始 HTML 交给 rehype-raw 解析，安全性由紧随其后的 rehype-sanitize 兜底
+      allowDangerousHtml: true,
       footnoteLabel: '脚注',
       footnoteBackLabel: '返回引用处',
       clobberPrefix: 'mk-fn-',
     })
+    .use(rehypeRaw)
     .use(rehypeSanitize, sanitizeSchema)
     .use(postProcessPlugin, { docPath, output })
     .use(rehypeKatex, { errorColor: 'var(--mk-error-fg)', strict: 'ignore' })

@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import {
+  absoluteLocalPath,
   dirnameOf,
+  docAssetUrl,
+  filterStyle,
   joinDocPath,
   postProcessPlugin,
   textOf,
@@ -93,6 +96,40 @@ describe('后处理插件：本地图片改写（F3.10）', () => {
     run(root([el('p', 1, [img])]), null);
     expect(img.properties?.['dataMdUnresolved']).toBe('true');
     expect(img.properties?.['src']).toBe('./a.png');
+  });
+});
+
+describe('后处理插件：本地图片路径形态', () => {
+  it('Windows WebView2 使用 http://mdkit-doc.localhost/ 形态', () => {
+    expect(docAssetUrl('C:\\a\\b.png', true)).toBe(
+      `http://mdkit-doc.localhost/?p=${encodeURIComponent('C:\\a\\b.png')}`,
+    );
+    expect(docAssetUrl('/a/b.png', false)).toBe(`mdkit-doc://local/?p=${encodeURIComponent('/a/b.png')}`);
+  });
+
+  it('盘符绝对路径与 file: URL 解析为规范绝对路径', () => {
+    expect(absoluteLocalPath('C:/Users/HP/Desktop/a.png')).toBe('C:\\Users\\HP\\Desktop\\a.png');
+    expect(absoluteLocalPath('C:\\Users\\x\\..\\a.png')).toBe('C:\\Users\\a.png');
+    expect(absoluteLocalPath('file:///C:/Users/%E5%9B%BE.png')).toBe('C:\\Users\\图.png');
+    expect(absoluteLocalPath('file:///home/u/a.png')).toBe('/home/u/a.png');
+    expect(absoluteLocalPath('https://x.com/a.png')).toBeNull();
+    expect(absoluteLocalPath('img/a.png')).toBeNull();
+  });
+
+  it('反斜杠相对路径与非法百分号编码不抛错', () => {
+    const a = el('img', 1, [], { src: '..\\img\\a.png' });
+    const b = el('img', 1, [], { src: 'img/100%.png' });
+    run(root([el('p', 1, [a, b])]), 'C:\\docs\\sub\\n.md');
+    expect(String(a.properties?.['src'])).toContain(encodeURIComponent('C:\\docs\\img\\a.png'));
+    expect(String(b.properties?.['src'])).toContain(encodeURIComponent('C:\\docs\\sub\\img\\100%.png'));
+  });
+});
+
+describe('后处理插件：内嵌 HTML style 过滤', () => {
+  it('保留配色/加粗，丢弃 url()/expression/定位', () => {
+    expect(filterStyle('color: blue; font-weight: bold')).toBe('color: blue; font-weight: bold');
+    expect(filterStyle('background: url(javascript:x); position: fixed; color:#00f')).toBe('color: #00f');
+    expect(filterStyle('width: expression(alert(1))')).toBe('');
   });
 });
 

@@ -71,7 +71,37 @@ describe('渲染管线（决策 §7 / 必测场景）', () => {
     expect(result.html).toContain('https://ok.com');
   });
 
-  it('原始 HTML 不被执行（allowDangerousHtml=false）', async () => {
+  it('内嵌 HTML：span 样式与加粗保留', async () => {
+    const result = await render(
+      '正文<span style="color: blue; position: fixed">蓝色重点</span>与<b>加粗</b><font color="red">红</font>',
+    );
+    expect(result.html).toContain('<span style="color: blue">蓝色重点</span>');
+    expect(result.html).toContain('<b>加粗</b>');
+    expect(result.html).toContain('<font color="red">红</font>');
+  });
+
+  it('内嵌 HTML 表格完整渲染（含合并单元格与样式）', async () => {
+    const result = await render(
+      '## 章节\n\n<table border="1">\n<tr><th colspan="2">表头</th></tr>\n<tr><td style="color:#1e6bd6"><strong>甲</strong></td><td>乙</td></tr>\n</table>\n\n后文',
+    );
+    expect(result.html).toContain('<table');
+    expect(result.html).toContain('colspan="2"');
+    expect(result.html).toContain('<td style="color: #1e6bd6"><strong>甲</strong></td>');
+    expect(result.html).toContain('后文');
+  });
+
+  it('<style> 内容整块丢弃，不以文本漏出', async () => {
+    const result = await render('<style>.a{color:red}</style>\n\n文本');
+    expect(result.html).not.toContain('color:red');
+  });
+
+  it('内嵌 HTML <img> 的相对路径同样改写', async () => {
+    const result = await render('<img src="pics/a.png" width="200">', 'C:\\notes\\doc.md');
+    expect(result.html).toContain('mdkit-doc://local/?p=');
+    expect(result.html).toContain('width="200"');
+  });
+
+  it('原始 HTML 内联事件被消毒', async () => {
     const result = await render('<div onclick="x()">raw</div>');
     expect(result.html).not.toContain('onclick');
   });

@@ -47,7 +47,13 @@ impl AppState {
 
     pub fn dir_allowed(&self, file_path: &str) -> bool {
         let dirs = self.allowed_dirs.lock().expect("allowed_dirs");
-        dirs.iter().any(|d| file_path.starts_with(d.as_str()))
+        // Windows 文件系统大小写不敏感：同一目录可能以不同大小写出现在文档路径与图片引用中
+        if cfg!(windows) {
+            let lower = file_path.to_lowercase();
+            dirs.iter().any(|d| lower.starts_with(&d.to_lowercase()))
+        } else {
+            dirs.iter().any(|d| file_path.starts_with(d.as_str()))
+        }
     }
 }
 

@@ -60,7 +60,11 @@ pub fn handle<R: tauri::Runtime>(
         .unwrap_or_default();
     let ok_ext = IMAGE_EXTENSIONS.contains(&ext.as_str());
     let ok_dir = state.dir_allowed(&file_path);
-    let is_absolute = Path::new(&file_path).is_absolute();
+    // 前缀比对前必须拒绝 `..`：内嵌 HTML 可直接写出协议地址，绕过前端路径规范化
+    let no_parent = !Path::new(&file_path)
+        .components()
+        .any(|c| matches!(c, std::path::Component::ParentDir));
+    let is_absolute = Path::new(&file_path).is_absolute() && no_parent;
     let exists = Path::new(&file_path).is_file();
     if !is_absolute || !ok_ext || !ok_dir || !exists {
         return respond(403, "Not allowed", "text/plain");
