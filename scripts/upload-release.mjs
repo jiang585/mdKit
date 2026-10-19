@@ -1,4 +1,4 @@
-import { readFileSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join, basename } from 'node:path';
 import { execSync } from 'node:child_process';
 import https from 'node:https';
@@ -25,37 +25,21 @@ if (!token) {
 
 const owner = 'jiang585';
 const repo = 'mdKit';
-const tag = 'v1.0.0';
-const releaseDir = join(process.cwd(), 'release', '1.0.0');
+// 版本号取自 package.json；发布说明取自 docs/RELEASE-v<version>.md（首行 `# ` 标题作为 Release 名称）
+const pkg = JSON.parse(readFileSync(join(process.cwd(), 'package.json'), 'utf-8'));
+const version = pkg.version;
+const tag = `v${version}`;
+const releaseDir = join(process.cwd(), 'release', version);
 
-const releaseName = 'MD工具箱 v1.0.0 (Tauri 2 重构版)';
-const releaseBody = `## 🎉 MD工具箱 v1.0.0 正式发布
-
-MD工具箱是一款轻量、极致性能的现代 Markdown 桌面工具箱。基于 **Tauri 2 + Rust + React + CodeMirror 6 + unified** 打造，安装包仅 **4.5 MB**，冷启动瞬时响应，内存占用大幅优化。
-
----
-
-### 📦 产物下载说明
-
-本次发布提供以下三种分发形态，请根据需要下载：
-
-| 文件名 | 类型 | 体积 | 说明 |
-| :--- | :--- | :--- | :--- |
-| **\`MD-Toolbox-Setup-1.0.0.exe\`** | 安装包 | ~4.5 MB | Windows NSIS 官方安装包，支持开始菜单、桌面快捷方式与干净卸载 |
-| **\`MD-Toolbox-Portable-1.0.0.zip\`** | 绿色便携包 | ~5.0 MB | 解压即用，自带全部运行所需环境及 DLL，适合 U 盘随身携带 |
-| **\`MD-Toolbox-1.0.0.exe\`** | 单 exe 独立版 | ~7.9 MB | 单文件可执行版，无需安装直接双击运行 |
-
----
-
-### ✨ 核心功能亮点
-
-1. **顶级编辑内核**：基于 CodeMirror 6，支持精准语法高亮、多标签会话、断电崩溃恢复草稿；
-2. **专业排版渲染**：GFM 扩展语法、KaTeX 数学公式、Mermaid 图表、highlight.js 60+ 代码着色；
-3. **双向滚动同步**：编辑区与预览区双向精准像素/行锚点同步，支持分屏、纯编辑与纯预览视图；
-4. **AI 智能助手**：内置文档修改 Diff 对比与行内改写辅助，修复了末尾追加与行偏移越界应用异常；
-5. **离线高保真导出**：支持独立 HTML 导出及离线高分辨率 PDF 打印导出（WebView2 PrintToPdf 原生集成）；
-6. **精致设计质感**：提供深色/浅色多套精心调优的主题，支持自定义导入。
-`;
+const notesPath = join(process.cwd(), 'docs', `RELEASE-${tag}.md`);
+if (!existsSync(notesPath)) {
+  console.error(`未找到发布说明 ${notesPath}`);
+  process.exit(1);
+}
+const notes = readFileSync(notesPath, 'utf-8');
+const titleMatch = notes.match(/^#\s+(.+)$/m);
+const releaseName = titleMatch ? titleMatch[1].trim() : `MD工具箱 ${tag}`;
+const releaseBody = titleMatch ? notes.replace(titleMatch[0], '').trimStart() : notes;
 
 function request(options, data) {
   return new Promise((resolve, reject) => {
@@ -196,9 +180,9 @@ async function main() {
   }, {});
 
   const filesToUpload = [
-    join(releaseDir, 'MD-Toolbox-Setup-1.0.0.exe'),
-    join(releaseDir, 'MD-Toolbox-Portable-1.0.0.zip'),
-    join(releaseDir, 'MD-Toolbox-1.0.0.exe'),
+    join(releaseDir, `MD-Toolbox-Setup-${version}.exe`),
+    join(releaseDir, `MD-Toolbox-Portable-${version}.zip`),
+    join(releaseDir, `MD-Toolbox-${version}.exe`),
   ];
 
   for (const filePath of filesToUpload) {
